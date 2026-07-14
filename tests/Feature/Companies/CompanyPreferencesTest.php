@@ -3,7 +3,6 @@
 use App\Actions\Companies\CreateCompany;
 use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Wallets\CreateWallet;
-use App\Enums\CompanyRole;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
 use App\Models\User;
@@ -39,18 +38,6 @@ test('an invalid timezone or currency is rejected', function () {
         ->assertSessionHasErrors(['timezone', 'currency']);
 
     expect($company->refresh()->timezone)->toBe('Asia/Dhaka');
-});
-
-test('a member cannot update the company preferences', function () {
-    $owner = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($owner, 'Acme Studio');
-
-    $member = User::factory()->create();
-    $company->members()->attach($member, ['role' => CompanyRole::Member->value]);
-
-    $this->actingAs($member)
-        ->patch(route('companies.preferences.update', ['company' => $company->slug]), ['timezone' => 'Asia/Dubai', 'currency' => 'USD'])
-        ->assertForbidden();
 });
 
 test('reports follow the company currency', function () {

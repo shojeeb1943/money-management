@@ -2,13 +2,11 @@
 
 use App\Actions\Companies\CreateCompany;
 use App\Actions\Transactions\CreateTransaction;
-use App\Enums\CompanyRole;
 use App\Enums\TransactionType;
 use App\Mcp\Servers\MonetaServer;
 use App\Mcp\Tools\CreateWallet;
 use App\Mcp\Tools\GetIncomeStatement;
 use App\Mcp\Tools\ListTransactions;
-use App\Mcp\Tools\ListWallets;
 use App\Mcp\Tools\RecordTransaction;
 use App\Mcp\Tools\RecordTransfer;
 use App\Mcp\Tools\SetBudget;
@@ -94,34 +92,6 @@ test('void-transaction restores the wallet balance', function () {
     $response->assertOk()->assertSee('voided');
 
     expect($bank->refresh()->cached_balance)->toBe(0);
-});
-
-test('a member can read but cannot write through mcp tools', function () {
-    [$owner, $company] = mcpCompany();
-
-    $member = User::factory()->create();
-    $company->members()->attach($member, ['role' => CompanyRole::Member->value]);
-    $member->switchCompany($company);
-
-    MonetaServer::actingAs($member)->tool(ListWallets::class, [])->assertOk();
-
-    MonetaServer::actingAs($member)->tool(RecordTransaction::class, [
-        'type' => 'expense',
-        'wallet' => 'Bank',
-        'amount' => '100',
-        'category' => 'Marketing',
-    ])->assertHasErrors();
-});
-
-test('tools reject a company the user does not belong to', function () {
-    [$user] = mcpCompany();
-
-    $stranger = User::factory()->create();
-    $otherCompany = app(CreateCompany::class)->handle($stranger, 'Other Co');
-
-    MonetaServer::actingAs($user)->tool(ListWallets::class, [
-        'company' => $otherCompany->slug,
-    ])->assertHasErrors();
 });
 
 test('get-income-statement reflects recorded transactions', function () {

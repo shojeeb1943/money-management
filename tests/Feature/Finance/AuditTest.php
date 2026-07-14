@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\Companies\CreateCompany;
-use App\Enums\CompanyRole;
 use App\Models\AuditLog;
 use App\Models\User;
 
@@ -46,13 +45,4 @@ test('an audit trail is written for the transaction lifecycle', function () {
 
     expect($updated->user_id)->toBe($user->id)
         ->and($updated->changes['amount'])->toBe(['from' => 500_000, 'to' => 600_000]);
-});
-
-test('the audit page is admin-only', function () {
-    [$owner, $company] = auditSetup();
-
-    $viewer = User::factory()->create();
-    $company->members()->attach($viewer, ['role' => CompanyRole::Member->value]);
-
-    $this->actingAs($viewer)->get(route('audit.index', ['current_company' => $company->slug]))->assertForbidden();
 });

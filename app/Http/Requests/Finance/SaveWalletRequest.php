@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Finance;
 
-use App\Enums\CompanyPermission;
 use App\Enums\WalletType;
 use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Models\Wallet;
@@ -16,7 +15,7 @@ class SaveWalletRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()->hasCompanyPermission($this->company(), CompanyPermission::ManageFinanceSetup);
+        return true;
     }
 
     /**

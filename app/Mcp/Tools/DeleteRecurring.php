@@ -31,7 +31,6 @@ class DeleteRecurring extends Tool
         $request->validate(['id' => 'required|integer']);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $recurring = RecurringTransaction::query()->forCompany($company)->whereKey((int) $request->get('id'))->first();
 

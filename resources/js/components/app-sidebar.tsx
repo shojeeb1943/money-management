@@ -75,17 +75,11 @@ export function AppSidebar() {
                       href: reportsIndex({ current_company: companySlug }),
                       icon: ChartColumn,
                   },
-                  ...(page.props.currentCompany?.role !== 'member'
-                      ? [
-                            {
-                                title: 'Audit Log',
-                                href: auditIndex({
-                                    current_company: companySlug,
-                                }),
-                                icon: History,
-                            },
-                        ]
-                      : []),
+                  {
+                      title: 'Audit Log',
+                      href: auditIndex({ current_company: companySlug }),
+                      icon: History,
+                  },
               ]
             : []),
     ];

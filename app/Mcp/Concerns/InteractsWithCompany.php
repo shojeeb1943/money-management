@@ -3,7 +3,6 @@
 namespace App\Mcp\Concerns;
 
 use App\Enums\CategoryKind;
-use App\Enums\CompanyPermission;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\User;
@@ -22,23 +21,13 @@ trait InteractsWithCompany
             ? Company::query()->where('slug', $slug)->first()
             : ($user->currentCompany ?? $user->fallbackCompany());
 
-        if (! $company instanceof Company || ! $user->belongsToCompany($company)) {
+        if (! $company instanceof Company) {
             throw ValidationException::withMessages([
-                'company' => 'Unknown company. Pass a "company" slug you belong to, or omit it to use your current company.',
+                'company' => 'Unknown company. Pass an existing "company" slug, or omit it to use your current company.',
             ]);
         }
 
         return $company;
-    }
-
-    protected function authorizeRecord(Request $request, Company $company): void
-    {
-        $this->authorizePermission($request, $company, CompanyPermission::RecordTransactions, 'record transactions');
-    }
-
-    protected function authorizeSetup(Request $request, Company $company): void
-    {
-        $this->authorizePermission($request, $company, CompanyPermission::ManageFinanceSetup, 'manage finance setup');
     }
 
     protected function wallet(Company $company, string|int $identifier): Wallet
@@ -86,16 +75,5 @@ trait InteractsWithCompany
         }
 
         return $user;
-    }
-
-    private function authorizePermission(Request $request, Company $company, CompanyPermission $permission, string $label): void
-    {
-        $user = $this->authenticatedUser($request);
-
-        if (! $user->hasCompanyPermission($company, $permission)) {
-            throw ValidationException::withMessages([
-                'permission' => "You do not have permission to {$label} in company \"{$company->name}\".",
-            ]);
-        }
     }
 }

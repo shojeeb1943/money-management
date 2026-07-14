@@ -44,14 +44,9 @@ type Option = { id: number; name: string };
 type Props = {
     budgets: BudgetRow[];
     categories: Option[];
-    canManage: boolean;
 };
 
-export default function BudgetsIndex({
-    budgets,
-    categories,
-    canManage,
-}: Props) {
+export default function BudgetsIndex({ budgets, categories }: Props) {
     const { currentCompany } = usePage().props;
     const { symbol } = useCurrency();
     const [formOpen, setFormOpen] = useState(false);
@@ -99,11 +94,9 @@ export default function BudgetsIndex({
                         title="Budgets"
                         description="Monthly spending limits per expense category"
                     />
-                    {canManage ? (
-                        <Button onClick={() => openForm(null)}>
-                            <Plus /> New budget
-                        </Button>
-                    ) : null}
+                    <Button onClick={() => openForm(null)}>
+                        <Plus /> New budget
+                    </Button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -138,27 +131,23 @@ export default function BudgetsIndex({
                                         />
                                         {budget.categoryName}
                                     </CardTitle>
-                                    {canManage ? (
-                                        <div className="flex gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => openForm(budget)}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                aria-label="Delete budget"
-                                                onClick={() =>
-                                                    removeBudget(budget)
-                                                }
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
-                                        </div>
-                                    ) : null}
+                                    <div className="flex gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => openForm(budget)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            aria-label="Delete budget"
+                                            onClick={() => removeBudget(budget)}
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </Button>
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
                                     <div className="flex items-baseline justify-between">

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Finance;
 
-use App\Enums\CompanyPermission;
 use App\Enums\RecurrenceFrequency;
 use App\Enums\TransactionType;
 use App\Http\Requests\Concerns\ResolvesCurrentCompany;
@@ -16,7 +15,7 @@ class SaveRecurringTransactionRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()->hasCompanyPermission($this->company(), CompanyPermission::ManageFinanceSetup);
+        return true;
     }
 
     /**

@@ -34,7 +34,6 @@ class UpdateCategory extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $category = $this->category($company, $request->get('category'));
         $previousName = $category->name;

@@ -30,7 +30,6 @@ class ArchiveWallet extends Tool
         $request->validate(['wallet' => 'required']);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $wallet = $this->wallet($company, $request->get('wallet'));
         $this->archiveWallet->handle($wallet);

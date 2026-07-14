@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Finance;
 
 use App\Actions\Budgets\EvaluateBudgetAlert;
 use App\Enums\CategoryKind;
-use App\Enums\CompanyPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveBudgetRequest;
 use App\Models\Budget;
@@ -43,7 +42,6 @@ class BudgetController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name'])
                 ->map(fn ($category) => ['id' => $category->id, 'name' => $category->name]),
-            'canManage' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup),
         ]);
     }
 
@@ -69,7 +67,6 @@ class BudgetController extends Controller
 
     public function destroy(Request $request, Company $current_company, Budget $budget): RedirectResponse
     {
-        abort_unless($request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup), 403);
 
         $budget->delete();
 

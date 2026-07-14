@@ -32,7 +32,6 @@ use Laravel\Passport\HasApiTokens;
  * @property Carbon|null $updated_at
  * @property-read Company|null $currentCompany
  * @property-read Collection<int, Company> $ownedCompanies
- * @property-read Collection<int, Membership> $companyMemberships
  * @property-read Collection<int, Company> $companies
  */
 #[Fillable(['name', 'email', 'password', 'current_company_id'])]

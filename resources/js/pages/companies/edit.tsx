@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit, index, update } from '@/routes/companies';
 import { update as updatePreferences } from '@/routes/companies/preferences';
-import type { Company, CompanyPermissions } from '@/types';
+import type { Company } from '@/types';
 
 type Props = {
     company: Company;
-    permissions: CompanyPermissions;
+    canDelete: boolean;
     timezones: string[];
     currencies: { code: string; symbol: string }[];
 };
@@ -22,7 +22,7 @@ const SELECT_CLASSES =
 
 export default function CompanyEdit({
     company,
-    permissions,
+    canDelete,
     timezones,
     currencies,
 }: Props) {
@@ -138,7 +138,7 @@ export default function CompanyEdit({
                     </Form>
                 </div>
 
-                {permissions.canDeleteCompany && !company.isPersonal ? (
+                {canDelete ? (
                     <div className="space-y-6">
                         <Heading
                             variant="small"
@@ -165,7 +165,7 @@ export default function CompanyEdit({
                 ) : null}
             </div>
 
-            {permissions.canDeleteCompany && !company.isPersonal ? (
+            {canDelete ? (
                 <DeleteCompanyModal
                     company={company}
                     open={deleteDialogOpen}

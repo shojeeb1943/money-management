@@ -30,7 +30,6 @@ class ArchiveCategory extends Tool
         $request->validate(['category' => 'required']);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $category = $this->category($company, $request->get('category'));
         $this->archiveCategory->handle($category);

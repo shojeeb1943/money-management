@@ -23,7 +23,7 @@ trait RedirectsToCurrentCompany
 
         abort_if(! $user, 403);
 
-        $company = $user->currentCompany ?? $user->personalCompany();
+        $company = $user->currentCompany ?? $user->fallbackCompany();
 
         abort_if(! $company, 403);
 

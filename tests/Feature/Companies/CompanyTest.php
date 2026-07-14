@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -28,7 +27,6 @@ test('companies can be created', function () {
 
     $this->assertDatabaseHas('companies', [
         'name' => 'Test Company',
-        'is_personal' => false,
     ]);
 });
 
@@ -55,8 +53,6 @@ test('the company edit page can be rendered', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
 
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
-
     $response = $this
         ->actingAs($user)
         ->get(route('companies.edit', $company));
@@ -66,15 +62,13 @@ test('the company edit page can be rendered', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('companies/edit')
             ->where('company.slug', $company->slug)
-            ->where('permissions.canUpdateCompany', true),
+            ->where('canDelete', true),
         );
 });
 
-test('companies can be updated by owners', function () {
+test('companies can be updated', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create(['name' => 'Original Name']);
-
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
 
     $response = $this
         ->actingAs($user)
@@ -90,28 +84,9 @@ test('companies can be updated by owners', function () {
     ]);
 });
 
-test('companies cannot be updated by members', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
-    $company = Company::factory()->create();
-
-    $company->members()->attach($owner, ['role' => CompanyRole::Owner->value]);
-    $company->members()->attach($member, ['role' => CompanyRole::Member->value]);
-
-    $response = $this
-        ->actingAs($member)
-        ->patch(route('companies.update', $company), [
-            'name' => 'Updated Name',
-        ]);
-
-    $response->assertForbidden();
-});
-
-test('companies can be deleted by owners', function () {
+test('companies can be deleted', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
-
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
 
     $response = $this
         ->actingAs($user)
@@ -129,8 +104,6 @@ test('companies can be deleted by owners', function () {
 test('company deletion requires name confirmation', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
-
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
 
     $response = $this
         ->actingAs($user)
@@ -150,13 +123,8 @@ test('deleting current company switches to alphabetically first remaining compan
     $user = User::factory()->create(['name' => 'Mike']);
 
     $zuluCompany = Company::factory()->create(['name' => 'Zulu Company']);
-    $zuluCompany->members()->attach($user, ['role' => CompanyRole::Owner->value]);
-
-    $alphaCompany = Company::factory()->create(['name' => 'Alpha Company']);
-    $alphaCompany->members()->attach($user, ['role' => CompanyRole::Owner->value]);
-
-    $betaCompany = Company::factory()->create(['name' => 'Beta Company']);
-    $betaCompany->members()->attach($user, ['role' => CompanyRole::Owner->value]);
+    Company::factory()->create(['name' => 'Alpha Company']);
+    Company::factory()->create(['name' => 'Beta Company']);
 
     $user->update(['current_company_id' => $zuluCompany->id]);
 
@@ -172,39 +140,13 @@ test('deleting current company switches to alphabetically first remaining compan
         'id' => $zuluCompany->id,
     ]);
 
-    expect($user->fresh()->current_company_id)->toEqual($alphaCompany->id);
-});
-
-test('deleting current company falls back to personal company when alphabetically first', function () {
-    $user = User::factory()->create();
-    $personalCompany = $user->personalCompany();
-    $company = Company::factory()->create(['name' => 'Zulu Company']);
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
-
-    $user->update(['current_company_id' => $company->id]);
-
-    $response = $this
-        ->actingAs($user)
-        ->delete(route('companies.destroy', $company), [
-            'name' => $company->name,
-        ]);
-
-    $response->assertRedirect();
-
-    $this->assertSoftDeleted('companies', [
-        'id' => $company->id,
-    ]);
-
-    expect($user->fresh()->current_company_id)->toEqual($personalCompany->id);
+    expect($user->fresh()->currentCompany->name)->toEqual('Alpha Company');
 });
 
 test('deleting non current company leaves current company unchanged', function () {
     $user = User::factory()->create();
-    $personalCompany = $user->personalCompany();
+    $currentCompany = $user->currentCompany;
     $company = Company::factory()->create();
-    $company->members()->attach($user, ['role' => CompanyRole::Owner->value]);
-
-    $user->update(['current_company_id' => $personalCompany->id]);
 
     $response = $this
         ->actingAs($user)
@@ -218,50 +160,30 @@ test('deleting non current company leaves current company unchanged', function (
         'id' => $company->id,
     ]);
 
-    expect($user->fresh()->current_company_id)->toEqual($personalCompany->id);
+    expect($user->fresh()->current_company_id)->toEqual($currentCompany->id);
 });
 
-test('personal companies cannot be deleted', function () {
+test('the last remaining company cannot be deleted', function () {
     $user = User::factory()->create();
-
-    $personalCompany = $user->personalCompany();
+    $company = $user->currentCompany;
 
     $response = $this
         ->actingAs($user)
-        ->delete(route('companies.destroy', $personalCompany), [
-            'name' => $personalCompany->name,
+        ->delete(route('companies.destroy', $company), [
+            'name' => $company->name,
         ]);
 
     $response->assertForbidden();
 
     $this->assertDatabaseHas('companies', [
-        'id' => $personalCompany->id,
+        'id' => $company->id,
         'deleted_at' => null,
     ]);
-});
-
-test('companies cannot be deleted by non owners', function () {
-    $owner = User::factory()->create();
-    $member = User::factory()->create();
-    $company = Company::factory()->create();
-
-    $company->members()->attach($owner, ['role' => CompanyRole::Owner->value]);
-    $company->members()->attach($member, ['role' => CompanyRole::Member->value]);
-
-    $response = $this
-        ->actingAs($member)
-        ->delete(route('companies.destroy', $company), [
-            'name' => $company->name,
-        ]);
-
-    $response->assertForbidden();
 });
 
 test('users can switch companies', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
-
-    $company->members()->attach($user, ['role' => CompanyRole::Member->value]);
 
     $response = $this
         ->actingAs($user)
@@ -270,17 +192,6 @@ test('users can switch companies', function () {
     $response->assertRedirect();
 
     expect($user->fresh()->current_company_id)->toEqual($company->id);
-});
-
-test('users cannot switch to company they dont belong to', function () {
-    $user = User::factory()->create();
-    $company = Company::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->post(route('companies.switch', $company));
-
-    $response->assertForbidden();
 });
 
 test('guests cannot access companies', function () {

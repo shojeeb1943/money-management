@@ -4,7 +4,7 @@ use App\Http\Controllers\Companies\CompanyController;
 use App\Http\Controllers\Settings\ApiTokenController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
-use App\Http\Middleware\EnsureCompanyMembership;
+use App\Http\Middleware\SetCurrentCompany;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -33,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::post('settings/companies', [CompanyController::class, 'store'])->name('companies.store');
 
-    Route::middleware(EnsureCompanyMembership::class)->group(function () {
+    Route::middleware(SetCurrentCompany::class)->group(function () {
         Route::get('settings/companies/{company}', [CompanyController::class, 'edit'])->name('companies.edit');
         Route::patch('settings/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
         Route::patch('settings/companies/{company}/preferences', [CompanyController::class, 'updatePreferences'])->name('companies.preferences.update');

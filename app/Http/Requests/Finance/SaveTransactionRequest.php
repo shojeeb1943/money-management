@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Finance;
 
-use App\Enums\CompanyPermission;
 use App\Enums\TransactionType;
 use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Models\Transaction;
@@ -22,7 +21,7 @@ class SaveTransactionRequest extends FormRequest
             return false;
         }
 
-        return $this->user()->hasCompanyPermission($this->company(), CompanyPermission::RecordTransactions);
+        return true;
     }
 
     /**

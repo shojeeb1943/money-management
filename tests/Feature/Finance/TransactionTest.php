@@ -5,7 +5,6 @@ use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Transactions\CreateTransfer;
 use App\Actions\Transactions\UpdateTransaction;
 use App\Actions\Transactions\VoidTransaction;
-use App\Enums\CompanyRole;
 use App\Enums\TransactionType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia;
@@ -122,57 +121,6 @@ test('a category kind mismatch is rejected', function () {
     expect(fn () => app(CreateTransaction::class)->handle(
         $company, TransactionType::Expense, $wallet, 10_000, now(), $income,
     ))->toThrow(InvalidArgumentException::class);
-});
-
-test('capital withdrawals can be recorded by admins but not members', function () {
-    [$owner, $company, $wallet] = setupBooks();
-
-    $accountant = User::factory()->create();
-    $viewer = User::factory()->create();
-    $company->members()->attach($accountant, ['role' => CompanyRole::Admin->value]);
-    $company->members()->attach($viewer, ['role' => CompanyRole::Member->value]);
-
-    $payload = [
-        'type' => TransactionType::CapitalWithdrawal->value,
-        'wallet_id' => $wallet->id,
-        'amount' => '1000',
-        'date' => now()->toDateString(),
-    ];
-
-    $this->actingAs($accountant)
-        ->post(route('transactions.store', ['current_company' => $company->slug]), $payload)
-        ->assertRedirect();
-
-    $this->actingAs($viewer)
-        ->post(route('transactions.store', ['current_company' => $company->slug]), $payload)
-        ->assertForbidden();
-
-    expect($company->transactions()->where('type', TransactionType::CapitalWithdrawal->value)->count())->toBe(1);
-});
-
-test('an admin can record income and expenses but a member cannot', function () {
-    [$owner, $company, $wallet, $income] = setupBooks();
-
-    $accountant = User::factory()->create();
-    $viewer = User::factory()->create();
-    $company->members()->attach($accountant, ['role' => CompanyRole::Admin->value]);
-    $company->members()->attach($viewer, ['role' => CompanyRole::Member->value]);
-
-    $payload = [
-        'type' => TransactionType::Income->value,
-        'wallet_id' => $wallet->id,
-        'category_id' => $income->id,
-        'amount' => '5000',
-        'date' => now()->toDateString(),
-    ];
-
-    $this->actingAs($accountant)
-        ->post(route('transactions.store', ['current_company' => $company->slug]), $payload)
-        ->assertRedirect();
-
-    $this->actingAs($viewer)
-        ->post(route('transactions.store', ['current_company' => $company->slug]), $payload)
-        ->assertForbidden();
 });
 
 test('balances stay consistent after fifty randomized operations', function () {

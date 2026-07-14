@@ -6,7 +6,6 @@ use App\Actions\Budgets\EvaluateBudgetAlert;
 use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Transactions\UpdateTransaction;
 use App\Actions\Transactions\VoidTransaction;
-use App\Enums\CompanyPermission;
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveTransactionRequest;
@@ -20,7 +19,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -66,7 +64,6 @@ class TransactionController extends Controller
                     'kind' => $category->kind->value,
                     'parentId' => $category->parent_id,
                 ]),
-            'canRecord' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::RecordTransactions),
         ]);
     }
 
@@ -107,7 +104,6 @@ class TransactionController extends Controller
 
     public function update(SaveTransactionRequest $request, Company $current_company, Transaction $transaction, UpdateTransaction $updateTransaction): RedirectResponse
     {
-        Gate::authorize('update', $transaction);
 
         $previousAmount = $transaction->amount;
 
@@ -135,7 +131,6 @@ class TransactionController extends Controller
 
     public function destroy(Request $request, Company $current_company, Transaction $transaction, VoidTransaction $voidTransaction): RedirectResponse
     {
-        Gate::authorize('void', $transaction);
 
         $voidTransaction->handle($transaction);
 

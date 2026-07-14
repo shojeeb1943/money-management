@@ -1,5 +1,5 @@
-import InstallSteps from '@/components/install-steps';
 import AppLogoIcon from '@/components/app-logo-icon';
+import InstallSteps from '@/components/install-steps';
 import {
     Card,
     CardContent,

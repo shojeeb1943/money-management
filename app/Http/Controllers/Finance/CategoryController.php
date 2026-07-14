@@ -7,7 +7,6 @@ use App\Actions\Categories\CreateCategory;
 use App\Actions\Categories\DeleteCategory;
 use App\Actions\Categories\UpdateCategory;
 use App\Enums\CategoryKind;
-use App\Enums\CompanyPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveCategoryRequest;
 use App\Models\Category;
@@ -15,7 +14,6 @@ use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
@@ -54,7 +52,6 @@ class CategoryController extends Controller
 
         return Inertia::render('categories/index', [
             'categories' => $payload,
-            'canManage' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup),
         ]);
     }
 
@@ -80,7 +77,6 @@ class CategoryController extends Controller
 
     public function update(SaveCategoryRequest $request, Company $current_company, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        Gate::authorize('update', $category);
 
         $updateCategory->handle(
             $category,
@@ -96,7 +92,6 @@ class CategoryController extends Controller
 
     public function archive(Request $request, Company $current_company, Category $category, ArchiveCategory $archiveCategory): RedirectResponse
     {
-        Gate::authorize('archive', $category);
 
         $archiveCategory->handle($category);
 
@@ -110,7 +105,6 @@ class CategoryController extends Controller
 
     public function destroy(Request $request, Company $current_company, Category $category, DeleteCategory $deleteCategory): RedirectResponse
     {
-        Gate::authorize('delete', $category);
 
         try {
             $deleteCategory->handle($category);

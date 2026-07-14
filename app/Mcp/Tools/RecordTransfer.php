@@ -44,7 +44,6 @@ class RecordTransfer extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeRecord($request, $company);
 
         $from = $this->wallet($company, $request->get('from_wallet'));
         $to = $this->wallet($company, $request->get('to_wallet'));

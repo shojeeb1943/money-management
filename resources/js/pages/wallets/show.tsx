@@ -22,15 +22,9 @@ type Props = {
     wallet: Wallet;
     ledger: LedgerRow[];
     pagination: SimplePagination;
-    canManage: boolean;
 };
 
-export default function WalletShow({
-    wallet,
-    ledger,
-    pagination,
-    canManage,
-}: Props) {
+export default function WalletShow({ wallet, ledger, pagination }: Props) {
     const { currentCompany } = usePage().props;
     const [reconcileOpen, setReconcileOpen] = useState(false);
 
@@ -64,16 +58,14 @@ export default function WalletShow({
                         description={wallet.typeLabel}
                     />
                     <div className="text-right">
-                        {canManage ? (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="mb-2"
-                                onClick={() => setReconcileOpen(true)}
-                            >
-                                <Scale className="size-4" /> Reconcile
-                            </Button>
-                        ) : null}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="mb-2"
+                            onClick={() => setReconcileOpen(true)}
+                        >
+                            <Scale className="size-4" /> Reconcile
+                        </Button>
                         <p className="text-sm text-muted-foreground">
                             Current balance
                         </p>

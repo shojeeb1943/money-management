@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Finance;
 
 use App\Enums\CategoryKind;
-use App\Enums\CompanyPermission;
 use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,7 +14,7 @@ class SaveCategoryRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()->hasCompanyPermission($this->company(), CompanyPermission::ManageFinanceSetup);
+        return true;
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Finance;
 
-use App\Enums\CompanyPermission;
 use App\Enums\RecurrenceFrequency;
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
@@ -57,7 +56,6 @@ class RecurringTransactionController extends Controller
                     'parentId' => $category->parent_id,
                 ]),
             'frequencies' => RecurrenceFrequency::options(),
-            'canManage' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup),
         ]);
     }
 
@@ -90,7 +88,6 @@ class RecurringTransactionController extends Controller
 
     public function toggle(Request $request, Company $current_company, RecurringTransaction $recurring_transaction): RedirectResponse
     {
-        abort_unless($request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup), 403);
 
         $recurring_transaction->update(['is_active' => ! $recurring_transaction->is_active]);
 
@@ -104,7 +101,6 @@ class RecurringTransactionController extends Controller
 
     public function destroy(Request $request, Company $current_company, RecurringTransaction $recurring_transaction): RedirectResponse
     {
-        abort_unless($request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup), 403);
 
         $recurring_transaction->delete();
 

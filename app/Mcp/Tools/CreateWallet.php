@@ -43,7 +43,6 @@ class CreateWallet extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         if ($company->wallets()->where('name', (string) $request->get('name'))->exists()) {
             return Response::error('A wallet with this name already exists in the company.');

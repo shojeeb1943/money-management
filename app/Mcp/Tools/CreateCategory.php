@@ -37,7 +37,6 @@ class CreateCategory extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $kind = CategoryKind::from((string) $request->get('kind'));
         $parent = $request->get('parent') !== null

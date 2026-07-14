@@ -52,7 +52,6 @@ class CreateRecurring extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $type = TransactionType::from((string) $request->get('type'));
         $wallet = $this->wallet($company, $request->get('wallet'));

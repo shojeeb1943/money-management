@@ -42,7 +42,6 @@ class UpdateWallet extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeSetup($request, $company);
 
         $wallet = $this->wallet($company, $request->get('wallet'));
 

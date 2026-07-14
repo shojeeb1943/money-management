@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Budgets\EvaluateBudgetAlert;
-use App\Enums\CompanyPermission;
 use App\Models\Budget;
 use App\Models\Company;
 use App\Models\Transaction;
@@ -88,7 +87,6 @@ class DashboardController extends Controller
                     'signedAmount' => $transaction->signedAmount(),
                     'date' => $transaction->date->toDateString(),
                 ]),
-            'canRecord' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::RecordTransactions),
         ]);
     }
 }

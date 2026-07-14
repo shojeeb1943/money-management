@@ -25,7 +25,6 @@ import type { Category } from '@/types';
 
 type Props = {
     categories: Category[];
-    canManage: boolean;
 };
 
 type ModalState = {
@@ -35,7 +34,7 @@ type ModalState = {
     parent: Category | null;
 };
 
-export default function CategoriesIndex({ categories, canManage }: Props) {
+export default function CategoriesIndex({ categories }: Props) {
     const { currentCompany } = usePage().props;
     const [modal, setModal] = useState<ModalState>({
         open: false,
@@ -106,68 +105,64 @@ export default function CategoriesIndex({ categories, canManage }: Props) {
                 ) : null}
             </div>
 
-            {canManage ? (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            aria-label={`${category.name} actions`}
-                        >
-                            <MoreVertical className="size-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {!isChild ? (
-                            <DropdownMenuItem
-                                onSelect={() =>
-                                    setModal({
-                                        open: true,
-                                        kind: category.kind,
-                                        category: null,
-                                        parent: category,
-                                    })
-                                }
-                            >
-                                <Plus /> Add sub-category
-                            </DropdownMenuItem>
-                        ) : null}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`${category.name} actions`}
+                    >
+                        <MoreVertical className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    {!isChild ? (
                         <DropdownMenuItem
                             onSelect={() =>
                                 setModal({
                                     open: true,
                                     kind: category.kind,
-                                    category,
-                                    parent: null,
+                                    category: null,
+                                    parent: category,
                                 })
                             }
                         >
-                            <Pencil /> Edit
+                            <Plus /> Add sub-category
                         </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem
+                        onSelect={() =>
+                            setModal({
+                                open: true,
+                                kind: category.kind,
+                                category,
+                                parent: null,
+                            })
+                        }
+                    >
+                        <Pencil /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => toggleArchive(category)}>
+                        {category.archived ? (
+                            <>
+                                <ArchiveRestore /> Restore
+                            </>
+                        ) : (
+                            <>
+                                <Archive /> Archive
+                            </>
+                        )}
+                    </DropdownMenuItem>
+                    {!category.hasActivity && !category.hasChildren ? (
                         <DropdownMenuItem
-                            onSelect={() => toggleArchive(category)}
+                            variant="destructive"
+                            onSelect={() => deleteCategory(category)}
                         >
-                            {category.archived ? (
-                                <>
-                                    <ArchiveRestore /> Restore
-                                </>
-                            ) : (
-                                <>
-                                    <Archive /> Archive
-                                </>
-                            )}
+                            <Trash2 /> Delete
                         </DropdownMenuItem>
-                        {!category.hasActivity && !category.hasChildren ? (
-                            <DropdownMenuItem
-                                variant="destructive"
-                                onSelect={() => deleteCategory(category)}
-                            >
-                                <Trash2 /> Delete
-                            </DropdownMenuItem>
-                        ) : null}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            ) : null}
+                    ) : null}
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     );
 
@@ -180,22 +175,20 @@ export default function CategoriesIndex({ categories, canManage }: Props) {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <CardTitle>{title}</CardTitle>
-                    {canManage ? (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                                setModal({
-                                    open: true,
-                                    kind,
-                                    category: null,
-                                    parent: null,
-                                })
-                            }
-                        >
-                            <Plus /> Add
-                        </Button>
-                    ) : null}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                            setModal({
+                                open: true,
+                                kind,
+                                category: null,
+                                parent: null,
+                            })
+                        }
+                    >
+                        <Plus /> Add
+                    </Button>
                 </CardHeader>
                 <CardContent className="space-y-1">
                     {parents.map((parent) => (

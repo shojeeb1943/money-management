@@ -37,7 +37,6 @@ class VoidTransaction extends Tool
         $request->validate(['id' => 'required|integer']);
 
         $company = $this->company($request);
-        $this->authorizeRecord($request, $company);
 
         $transaction = Transaction::query()->forCompany($company)->whereKey((int) $request->get('id'))->first();
 

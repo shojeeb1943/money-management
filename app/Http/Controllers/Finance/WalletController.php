@@ -6,7 +6,6 @@ use App\Actions\Wallets\ArchiveWallet;
 use App\Actions\Wallets\CreateWallet;
 use App\Actions\Wallets\ReconcileWallet;
 use App\Actions\Wallets\UpdateWallet;
-use App\Enums\CompanyPermission;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
 use App\Http\Controllers\Controller;
@@ -18,7 +17,6 @@ use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,13 +31,11 @@ class WalletController extends Controller
                 ->get()
                 ->map(fn (Wallet $wallet) => $this->walletPayload($wallet)),
             'walletTypes' => WalletType::options(),
-            'canManage' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup),
         ]);
     }
 
     public function show(Request $request, Company $current_company, Wallet $wallet): Response
     {
-        Gate::authorize('view', $wallet);
 
         $entries = $wallet->company->transactions()
             ->posted()
@@ -101,7 +97,6 @@ class WalletController extends Controller
                 'total' => $entries->total(),
             ],
             'walletTypes' => WalletType::options(),
-            'canManage' => $request->user()->hasCompanyPermission($current_company, CompanyPermission::ManageFinanceSetup),
         ]);
     }
 
@@ -126,7 +121,6 @@ class WalletController extends Controller
 
     public function update(SaveWalletRequest $request, Company $current_company, Wallet $wallet, UpdateWallet $updateWallet): RedirectResponse
     {
-        Gate::authorize('update', $wallet);
 
         $updateWallet->handle(
             $wallet,
@@ -145,7 +139,6 @@ class WalletController extends Controller
 
     public function archive(Request $request, Company $current_company, Wallet $wallet, ArchiveWallet $archiveWallet): RedirectResponse
     {
-        Gate::authorize('archive', $wallet);
 
         $archiveWallet->handle($wallet);
 
@@ -159,7 +152,6 @@ class WalletController extends Controller
 
     public function reconcile(Request $request, Company $current_company, Wallet $wallet, ReconcileWallet $reconcileWallet): RedirectResponse
     {
-        Gate::authorize('update', $wallet);
 
         $validated = $request->validate([
             'actual_balance' => ['required', 'numeric'],

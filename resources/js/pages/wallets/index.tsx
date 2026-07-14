@@ -38,14 +38,9 @@ const TYPE_ICONS: Record<string, typeof Landmark> = {
 type Props = {
     wallets: Wallet[];
     walletTypes: WalletTypeOption[];
-    canManage: boolean;
 };
 
-export default function WalletsIndex({
-    wallets,
-    walletTypes,
-    canManage,
-}: Props) {
+export default function WalletsIndex({ wallets, walletTypes }: Props) {
     const { currentCompany } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<Wallet | null>(null);
@@ -89,14 +84,9 @@ export default function WalletsIndex({
                         title="Wallets"
                         description="Your money accounts and their live balances"
                     />
-                    {canManage ? (
-                        <Button
-                            onClick={openCreate}
-                            data-test="new-wallet-button"
-                        >
-                            <Plus /> New wallet
-                        </Button>
-                    ) : null}
+                    <Button onClick={openCreate} data-test="new-wallet-button">
+                        <Plus /> New wallet
+                    </Button>
                 </div>
 
                 <div className="text-sm text-muted-foreground">
@@ -151,44 +141,42 @@ export default function WalletsIndex({
                                         </div>
                                     </div>
 
-                                    {canManage ? (
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    aria-label="Wallet actions"
-                                                >
-                                                    <MoreVertical className="size-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    onSelect={() =>
-                                                        openEdit(wallet)
-                                                    }
-                                                >
-                                                    <Pencil /> Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onSelect={() =>
-                                                        toggleArchive(wallet)
-                                                    }
-                                                >
-                                                    {wallet.archived ? (
-                                                        <>
-                                                            <ArchiveRestore />{' '}
-                                                            Restore
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Archive /> Archive
-                                                        </>
-                                                    )}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    ) : null}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                aria-label="Wallet actions"
+                                            >
+                                                <MoreVertical className="size-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                                onSelect={() =>
+                                                    openEdit(wallet)
+                                                }
+                                            >
+                                                <Pencil /> Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onSelect={() =>
+                                                    toggleArchive(wallet)
+                                                }
+                                            >
+                                                {wallet.archived ? (
+                                                    <>
+                                                        <ArchiveRestore />{' '}
+                                                        Restore
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Archive /> Archive
+                                                    </>
+                                                )}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="flex items-center justify-between">

@@ -23,18 +23,7 @@ class CompanyFactory extends Factory
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'is_personal' => false,
         ];
-    }
-
-    /**
-     * Indicate that the company is a personal company.
-     */
-    public function personal(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_personal' => true,
-        ]);
     }
 
     /**

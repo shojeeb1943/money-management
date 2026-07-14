@@ -24,7 +24,7 @@ test('creating the admin account finishes the installation', function () {
     $user = User::where('email', 'admin@example.com')->firstOrFail();
     $company = Company::where('name', 'Acme Studio')->firstOrFail();
 
-    expect($user->belongsToCompany($company))->toBeTrue()
+    expect($user->currentCompany->is($company))->toBeTrue()
         ->and($company->wallets()->count())->toBeGreaterThan(0)
         ->and(file_exists($this->flag))->toBeTrue();
 

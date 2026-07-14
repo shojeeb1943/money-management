@@ -28,7 +28,7 @@ class CreateAdminAccount
                 'password' => $password,
             ]);
 
-            $this->createCompany->handle($user, $companyName, isPersonal: true);
+            $this->createCompany->handle($user, $companyName);
 
             return $user;
         });

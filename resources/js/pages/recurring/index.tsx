@@ -65,7 +65,6 @@ type Props = {
     wallets: Option[];
     categories: CategoryOption[];
     frequencies: Array<{ value: string; label: string }>;
-    canManage: boolean;
 };
 
 export default function RecurringIndex({
@@ -73,7 +72,6 @@ export default function RecurringIndex({
     wallets,
     categories,
     frequencies,
-    canManage,
 }: Props) {
     const { currentCompany } = usePage().props;
     const { symbol } = useCurrency();
@@ -107,11 +105,9 @@ export default function RecurringIndex({
                         title="Recurring"
                         description="Rent, salaries and subscriptions posted automatically"
                     />
-                    {canManage ? (
-                        <Button onClick={() => setSheetOpen(true)}>
-                            <Plus /> New recurring
-                        </Button>
-                    ) : null}
+                    <Button onClick={() => setSheetOpen(true)}>
+                        <Plus /> New recurring
+                    </Button>
                 </div>
 
                 <Table>
@@ -164,47 +160,42 @@ export default function RecurringIndex({
                                     <Money amount={row.amount} />
                                 </TableCell>
                                 <TableCell>
-                                    {canManage ? (
-                                        <div className="flex justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                aria-label={
-                                                    row.active
-                                                        ? 'Pause'
-                                                        : 'Resume'
-                                                }
-                                                onClick={() =>
-                                                    router.patch(
-                                                        toggle.url({
-                                                            current_company:
-                                                                slug,
-                                                            recurring_transaction:
-                                                                row.id,
-                                                        }),
-                                                        {},
-                                                        {
-                                                            preserveScroll: true,
-                                                        },
-                                                    )
-                                                }
-                                            >
-                                                {row.active ? (
-                                                    <Pause className="size-4" />
-                                                ) : (
-                                                    <Play className="size-4" />
-                                                )}
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                aria-label="Delete"
-                                                onClick={() => setDeleting(row)}
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
-                                        </div>
-                                    ) : null}
+                                    <div className="flex justify-end gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            aria-label={
+                                                row.active ? 'Pause' : 'Resume'
+                                            }
+                                            onClick={() =>
+                                                router.patch(
+                                                    toggle.url({
+                                                        current_company: slug,
+                                                        recurring_transaction:
+                                                            row.id,
+                                                    }),
+                                                    {},
+                                                    {
+                                                        preserveScroll: true,
+                                                    },
+                                                )
+                                            }
+                                        >
+                                            {row.active ? (
+                                                <Pause className="size-4" />
+                                            ) : (
+                                                <Play className="size-4" />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            aria-label="Delete"
+                                            onClick={() => setDeleting(row)}
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

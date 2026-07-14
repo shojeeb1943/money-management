@@ -48,7 +48,6 @@ class UpdateTransaction extends Tool
         ]);
 
         $company = $this->company($request);
-        $this->authorizeRecord($request, $company);
 
         $transaction = Transaction::query()->forCompany($company)->whereKey((int) $request->get('id'))->first();
 

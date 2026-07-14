@@ -2,7 +2,6 @@ import { Head, Link } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
 import CreateCompanyModal from '@/components/create-company-modal';
 import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Tooltip,
@@ -50,9 +49,6 @@ export default function CompaniesIndex({ companies }: Props) {
                                 <span className="font-medium">
                                     {company.name}
                                 </span>
-                                {company.isPersonal ? (
-                                    <Badge variant="secondary">Personal</Badge>
-                                ) : null}
                             </div>
 
                             <TooltipProvider>

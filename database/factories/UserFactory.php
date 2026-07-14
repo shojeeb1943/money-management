@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -44,12 +43,8 @@ class UserFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function ($user) {
-            $company = Company::factory()->personal()->create([
+            $company = Company::factory()->create([
                 'name' => $user->name."'s Company",
-            ]);
-
-            $company->members()->attach($user, [
-                'role' => CompanyRole::Owner->value,
             ]);
 
             $user->switchCompany($company);

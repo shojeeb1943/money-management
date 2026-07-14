@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Finance;
 
-use App\Enums\CompanyPermission;
 use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,7 +13,7 @@ class SaveTransferRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()->hasCompanyPermission($this->company(), CompanyPermission::RecordTransactions);
+        return true;
     }
 
     /**

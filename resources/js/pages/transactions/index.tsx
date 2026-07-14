@@ -61,7 +61,6 @@ type Props = {
     filters: TransactionFilters;
     wallets: Option[];
     categories: CategoryOption[];
-    canRecord: boolean;
 };
 
 const ALL = '__all__';
@@ -73,7 +72,6 @@ export default function TransactionsIndex({
     filters,
     wallets,
     categories,
-    canRecord,
 }: Props) {
     const { currentCompany } = usePage().props;
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -159,46 +157,38 @@ export default function TransactionsIndex({
                         description="Every money in and out"
                     />
                     <div className="flex gap-2">
-                        {canRecord ? (
-                            <>
-                                <Button
-                                    onClick={() => openCreate('income')}
-                                    data-test="new-income-button"
-                                >
-                                    <Plus /> Income entry
+                        <Button
+                            onClick={() => openCreate('income')}
+                            data-test="new-income-button"
+                        >
+                            <Plus /> Income entry
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() => openCreate('expense')}
+                            data-test="new-expense-button"
+                        >
+                            <Plus /> Expense entry
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    More <ChevronDown />
                                 </Button>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => openCreate('expense')}
-                                    data-test="new-expense-button"
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                    onSelect={() => openCreate('transfer')}
                                 >
-                                    <Plus /> Expense entry
-                                </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline">
-                                            More <ChevronDown />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                            onSelect={() =>
-                                                openCreate('transfer')
-                                            }
-                                        >
-                                            <ArrowLeftRight /> Transfer
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onSelect={() =>
-                                                openCreate('capital')
-                                            }
-                                        >
-                                            <Plus /> Capital entry
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </>
-                        ) : null}
+                                    <ArrowLeftRight /> Transfer
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onSelect={() => openCreate('capital')}
+                                >
+                                    <Plus /> Capital entry
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
@@ -428,7 +418,7 @@ export default function TransactionsIndex({
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    {canRecord && !transaction.voided ? (
+                                    {!transaction.voided ? (
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button

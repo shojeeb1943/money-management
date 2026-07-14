@@ -47,14 +47,11 @@ class CompanyController extends Controller
      */
     public function edit(Request $request, Company $company): Response
     {
-        $user = $request->user();
-
         return Inertia::render('companies/edit', [
             'company' => [
                 'id' => $company->id,
                 'name' => $company->name,
                 'slug' => $company->slug,
-                'isPersonal' => $company->is_personal,
                 'timezone' => $company->timezone,
                 'currency' => $company->currency,
             ],
@@ -63,7 +60,7 @@ class CompanyController extends Controller
                 'code' => $code,
                 'symbol' => trim($symbol),
             ])->values(),
-            'permissions' => $user->toCompanyPermissions($company),
+            'canDelete' => Gate::allows('delete', $company),
         ]);
     }
 
@@ -72,8 +69,6 @@ class CompanyController extends Controller
      */
     public function update(SaveCompanyRequest $request, Company $company): RedirectResponse
     {
-        Gate::authorize('update', $company);
-
         $company = DB::transaction(function () use ($request, $company) {
             $company = Company::whereKey($company->id)->lockForUpdate()->firstOrFail();
 
@@ -92,8 +87,6 @@ class CompanyController extends Controller
      */
     public function updatePreferences(Request $request, Company $company): RedirectResponse
     {
-        Gate::authorize('update', $company);
-
         $validated = $request->validate([
             'timezone' => ['required', 'timezone:all'],
             'currency' => ['required', Rule::in(Money::codes())],
@@ -111,8 +104,6 @@ class CompanyController extends Controller
      */
     public function switch(Request $request, Company $company): RedirectResponse
     {
-        abort_unless($request->user()->belongsToCompany($company), 403);
-
         $request->user()->switchCompany($company);
 
         return back();
@@ -129,7 +120,6 @@ class CompanyController extends Controller
             : null;
 
         DB::transaction(function () use ($company) {
-            $company->memberships()->delete();
             $company->delete();
         });
 

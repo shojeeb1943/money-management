@@ -3,7 +3,6 @@
 use App\Actions\Companies\CreateCompany;
 use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Wallets\CreateWallet;
-use App\Enums\CompanyRole;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
 use App\Models\Company;
@@ -59,36 +58,6 @@ test('a wallet can be created through the endpoint with a decimal opening balanc
     $wallet = $company->wallets()->where('name', 'Rocket')->firstOrFail();
 
     expect($wallet->cached_balance)->toBe(150_050);
-});
-
-test('a member cannot create or update wallets', function () {
-    $owner = User::factory()->create();
-    $company = financeCompany($owner);
-
-    $viewer = User::factory()->create();
-    $company->members()->attach($viewer, ['role' => CompanyRole::Member->value]);
-
-    $this->actingAs($viewer)->post(route('wallets.store', ['current_company' => $company->slug]), [
-        'name' => 'Not Allowed',
-        'type' => WalletType::Cash->value,
-    ])->assertForbidden();
-
-    $wallet = $company->wallets()->firstOrFail();
-
-    $this->actingAs($viewer)->put(route('wallets.update', ['current_company' => $company->slug, 'wallet' => $wallet->id]), [
-        'name' => 'Hacked',
-        'type' => WalletType::Cash->value,
-    ])->assertForbidden();
-});
-
-test('a member can view wallets', function () {
-    $owner = User::factory()->create();
-    $company = financeCompany($owner);
-
-    $viewer = User::factory()->create();
-    $company->members()->attach($viewer, ['role' => CompanyRole::Member->value]);
-
-    $this->actingAs($viewer)->get(route('wallets.index', ['current_company' => $company->slug]))->assertOk();
 });
 
 test('a wallet from another company returns 404 via scoped bindings', function () {

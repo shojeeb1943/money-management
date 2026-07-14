@@ -29,7 +29,7 @@ test('moneta:install creates the admin account and company', function () {
     $user = User::where('email', 'admin@example.com')->firstOrFail();
     $company = Company::where('name', 'Acme Studio')->firstOrFail();
 
-    expect($user->belongsToCompany($company))->toBeTrue()
+    expect($user->currentCompany->is($company))->toBeTrue()
         ->and($company->wallets()->count())->toBeGreaterThan(0);
 
     $this->post(route('login.store'), [
