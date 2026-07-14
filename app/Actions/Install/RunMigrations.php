@@ -5,6 +5,7 @@ namespace App\Actions\Install;
 use App\Actions\Setup\EnsurePersonalAccessClient;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Passport\Passport;
+use phpseclib3\Crypt\RSA;
 use RuntimeException;
 
 class RunMigrations
@@ -29,10 +30,16 @@ class RunMigrations
             return;
         }
 
-        Artisan::call('passport:keys', ['--force' => true]);
+        $key = RSA::createKey(4096);
 
-        if (! file_exists($privateKey) || ! file_exists($publicKey)) {
-            throw new RuntimeException("Unable to generate Passport keys at {$privateKey}. Check that the directory is writable and the openssl extension works.");
+        if (file_put_contents($publicKey, (string) $key->getPublicKey()) === false
+            || file_put_contents($privateKey, (string) $key) === false) {
+            throw new RuntimeException("Unable to write Passport keys at {$privateKey}. Check that the directory is writable.");
+        }
+
+        if (! windows_os()) {
+            chmod($publicKey, 0660);
+            chmod($privateKey, 0600);
         }
     }
 }
