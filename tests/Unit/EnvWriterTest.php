@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 use App\Support\EnvWriter;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->path = sys_get_temp_dir().'/env-writer-test-'.uniqid().'.env';
 });
 
-afterEach(function () {
+afterEach(function (): void {
     @unlink($this->path);
 });
 
-test('replaces an existing key', function () {
+test('replaces an existing key', function (): void {
     file_put_contents($this->path, "APP_ENV=local\nAPP_DEBUG=true\n");
 
     (new EnvWriter)->set(['APP_ENV' => 'production'], $this->path);
@@ -23,7 +23,7 @@ test('replaces an existing key', function () {
         ->not->toContain('APP_ENV=local');
 });
 
-test('uncomments a commented key', function () {
+test('uncomments a commented key', function (): void {
     file_put_contents($this->path, "DB_CONNECTION=sqlite\n# DB_HOST=127.0.0.1\n# DB_PORT=3306\n");
 
     (new EnvWriter)->set(['DB_HOST' => 'db.example.com'], $this->path);
@@ -36,7 +36,7 @@ test('uncomments a commented key', function () {
         ->not->toContain('# DB_HOST');
 });
 
-test('appends a missing key', function () {
+test('appends a missing key', function (): void {
     file_put_contents($this->path, "APP_ENV=local\n");
 
     (new EnvWriter)->set(['NEW_KEY' => 'value'], $this->path);
@@ -44,7 +44,7 @@ test('appends a missing key', function () {
     expect(file_get_contents($this->path))->toContain("NEW_KEY=value\n");
 });
 
-test('quotes values with spaces and special characters', function () {
+test('quotes values with spaces and special characters', function (): void {
     file_put_contents($this->path, "DB_PASSWORD=\n");
 
     (new EnvWriter)->set(['DB_PASSWORD' => 'p@ss word"x'], $this->path);
@@ -52,7 +52,7 @@ test('quotes values with spaces and special characters', function () {
     expect(file_get_contents($this->path))->toContain("DB_PASSWORD='p@ss word\"x'");
 });
 
-test('matches keys with spaces around the equals sign', function () {
+test('matches keys with spaces around the equals sign', function (): void {
     file_put_contents($this->path, "DB_HOST = 127.0.0.1\n");
 
     (new EnvWriter)->set(['DB_HOST' => 'db.example.com'], $this->path);
@@ -64,7 +64,7 @@ test('matches keys with spaces around the equals sign', function () {
         ->not->toContain('127.0.0.1');
 });
 
-test('single-quotes values so dotenv does not interpolate them', function () {
+test('single-quotes values so dotenv does not interpolate them', function (): void {
     file_put_contents($this->path, "DB_PASSWORD=\n");
 
     (new EnvWriter)->set(['DB_PASSWORD' => 'p@ss$word{x}'], $this->path);
@@ -72,7 +72,7 @@ test('single-quotes values so dotenv does not interpolate them', function () {
     expect(file_get_contents($this->path))->toContain("DB_PASSWORD='p@ss\$word{x}'");
 });
 
-test('writes an empty value for null', function () {
+test('writes an empty value for null', function (): void {
     file_put_contents($this->path, "DB_PASSWORD=secret\n");
 
     (new EnvWriter)->set(['DB_PASSWORD' => null], $this->path);

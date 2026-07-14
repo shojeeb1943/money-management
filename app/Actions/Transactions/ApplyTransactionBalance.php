@@ -14,7 +14,7 @@ final class ApplyTransactionBalance
     {
         foreach ($this->walletDeltas($transaction) as $walletId => $delta) {
             if ($delta !== 0) {
-                Wallet::whereKey($walletId)->increment('cached_balance', $direction * $delta);
+                Wallet::query()->whereKey($walletId)->increment('cached_balance', $direction * $delta);
             }
         }
     }

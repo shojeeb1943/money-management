@@ -28,8 +28,10 @@ use Illuminate\Support\Carbon;
 #[Fillable(['company_id', 'category_id', 'period', 'amount', 'alert_threshold', 'is_active'])]
 final class Budget extends Model
 {
+    use BelongsToCompany;
+
     /** @use HasFactory<BudgetFactory> */
-    use BelongsToCompany, HasFactory;
+    use HasFactory;
 
     /**
      * @return BelongsTo<Category, $this>

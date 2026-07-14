@@ -22,7 +22,7 @@ final class ApiTokenController extends Controller
                 ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->orderByDesc('created_at')
                 ->get()
-                ->map(fn (Token $token) => [
+                ->map(fn (Token $token): array => [
                     'id' => $token->getKey(),
                     'name' => $token->name,
                     'createdAt' => $token->created_at?->toDateString(),

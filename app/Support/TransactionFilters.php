@@ -33,7 +33,7 @@ final class TransactionFilters
             ->when($from !== '', fn ($query) => $query->whereDate('date', '>=', $from))
             ->when($to !== '', fn ($query) => $query->whereDate('date', '<=', $to))
             ->when($search !== '', fn ($query) => $query->where(
-                fn ($inner) => $inner->where('description', 'like', "%{$search}%")->orWhere('reference', 'like', "%{$search}%"),
+                fn ($inner) => $inner->where('description', 'like', sprintf('%%%s%%', $search))->orWhere('reference', 'like', sprintf('%%%s%%', $search)),
             ))
             ->when(
                 $status === 'voided',

@@ -38,7 +38,7 @@ final class IncomeStatementReport
 
         $categories = Category::query()->forCompany($company)->get();
         $amountsByCategory = $categories->mapWithKeys(
-            fn (Category $category) => [$category->id => (int) ($totals[$category->id] ?? 0)],
+            fn (Category $category): array => [$category->id => (int) ($totals[$category->id] ?? 0)],
         );
 
         $sections = [];
@@ -80,7 +80,7 @@ final class IncomeStatementReport
                 ];
             }
 
-            usort($rows, fn (array $a, array $b) => $b['amount'] <=> $a['amount']);
+            usort($rows, fn (array $a, array $b): int => $b['amount'] <=> $a['amount']);
 
             $sections[$kind->value] = $rows;
         }

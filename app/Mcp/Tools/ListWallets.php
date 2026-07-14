@@ -36,7 +36,7 @@ final class ListWallets extends Tool
             ->when($request->get('include_archived') !== true, fn ($query) => $query->active())
             ->orderBy('name')
             ->get()
-            ->map(fn (Wallet $wallet) => [
+            ->map(fn (Wallet $wallet): array => [
                 'id' => $wallet->id,
                 'name' => $wallet->name,
                 'type' => $wallet->type->value,

@@ -14,7 +14,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 
-final class ReconcileWallet
+final readonly class ReconcileWallet
 {
     public const string ADJUSTMENT_CATEGORY = 'Balance Adjustment';
 
@@ -33,7 +33,7 @@ final class ReconcileWallet
             return null;
         }
 
-        return DB::transaction(function () use ($wallet, $difference, $user) {
+        return DB::transaction(function () use ($wallet, $difference, $user): Transaction {
             $kind = $difference > 0 ? CategoryKind::Income : CategoryKind::Expense;
             $category = $this->adjustmentCategory($wallet, $kind);
 
@@ -44,7 +44,7 @@ final class ReconcileWallet
                 abs($difference),
                 now($wallet->company->timezone),
                 $category,
-                "Balance reconciliation for {$wallet->name}",
+                'Balance reconciliation for '.$wallet->name,
                 creator: $user,
             );
         });

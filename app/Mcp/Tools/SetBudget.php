@@ -49,18 +49,15 @@ final class SetBudget extends Tool
 
         $period = (string) $request->get('period', 'monthly');
 
-        $budget = Budget::updateOrCreate(
-            [
-                'company_id' => $company->id,
-                'category_id' => $category->id,
-                'period' => $period,
-            ],
-            [
-                'amount' => Money::toMinorUnits((string) $request->get('amount')),
-                'alert_threshold' => (int) $request->get('alert_threshold', 80),
-                'is_active' => true,
-            ],
-        );
+        $budget = Budget::query()->updateOrCreate([
+            'company_id' => $company->id,
+            'category_id' => $category->id,
+            'period' => $period,
+        ], [
+            'amount' => Money::toMinorUnits((string) $request->get('amount')),
+            'alert_threshold' => (int) $request->get('alert_threshold', 80),
+            'is_active' => true,
+        ]);
 
         return Response::text(sprintf(
             '%s budget of %s set for "%s" (alerts at %d%%).',

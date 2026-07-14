@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Concerns;
 
-use App\Models\Company;
 use Illuminate\Support\Str;
 
 trait GeneratesUniqueCompanySlugs
@@ -17,7 +16,7 @@ trait GeneratesUniqueCompanySlugs
         $defaultSlug = Str::slug($name);
 
         $query = static::withTrashed()
-            ->where(function ($query) use ($defaultSlug) {
+            ->where(function ($query) use ($defaultSlug): void {
                 $query->where('slug', $defaultSlug)
                     ->orWhere('slug', 'like', $defaultSlug.'-%');
             });
@@ -33,13 +32,14 @@ trait GeneratesUniqueCompanySlugs
                 if ($slug === $defaultSlug) {
                     return 0;
                 }
+
                 if (preg_match('/^'.preg_quote($defaultSlug, '/').'-(\d+)$/', $slug, $matches)) {
                     return (int) $matches[1];
                 }
 
                 return null;
             })
-            ->filter(fn (?int $suffix) => $suffix !== null)
+            ->filter(fn (?int $suffix): bool => $suffix !== null)
             ->max() ?? 0;
 
         return $existingSlugs->isEmpty()

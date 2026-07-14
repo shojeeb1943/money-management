@@ -17,9 +17,7 @@ final class EnvWriter
 
         $contents = file_get_contents($path);
 
-        if ($contents === false) {
-            throw new RuntimeException("Unable to read environment file at {$path}.");
-        }
+        throw_if($contents === false, RuntimeException::class, sprintf('Unable to read environment file at %s.', $path));
 
         foreach ($values as $key => $value) {
             $line = $key.'='.$this->format($value);
@@ -30,9 +28,7 @@ final class EnvWriter
                 : rtrim($contents, "\n")."\n".$line."\n";
         }
 
-        if (file_put_contents($path, $contents) === false) {
-            throw new RuntimeException("Unable to write environment file at {$path}.");
-        }
+        throw_if(file_put_contents($path, $contents) === false, RuntimeException::class, sprintf('Unable to write environment file at %s.', $path));
     }
 
     private function format(string|int|null $value): string

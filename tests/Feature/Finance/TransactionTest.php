@@ -14,7 +14,7 @@ use Inertia\Testing\AssertableInertia;
 function setupBooks(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 
     return [
         $user,
@@ -25,10 +25,10 @@ function setupBooks(): array
     ];
 }
 
-test('an income transaction increases the wallet balance', function () {
+test('an income transaction increases the wallet balance', function (): void {
     [$user, $company, $wallet, $income] = setupBooks();
 
-    app(CreateTransaction::class)->handle(
+    resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $wallet, 250_000, now(), $income, creator: $user,
     );
 
@@ -36,10 +36,10 @@ test('an income transaction increases the wallet balance', function () {
         ->and($wallet->derivedBalance())->toBe(250_000);
 });
 
-test('an expense transaction decreases the wallet balance', function () {
+test('an expense transaction decreases the wallet balance', function (): void {
     [$user, $company, $wallet, , $expense] = setupBooks();
 
-    app(CreateTransaction::class)->handle(
+    resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Expense, $wallet, 80_000, now(), $expense,
     );
 
@@ -47,22 +47,22 @@ test('an expense transaction decreases the wallet balance', function () {
         ->and($wallet->derivedBalance())->toBe(-80_000);
 });
 
-test('a capital withdrawal decreases and an investment increases the wallet', function () {
+test('a capital withdrawal decreases and an investment increases the wallet', function (): void {
     [$user, $company, $wallet] = setupBooks();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $wallet, 1_000_000, now());
-    app(CreateTransaction::class)->handle($company, TransactionType::CapitalWithdrawal, $wallet, 100_000, now());
+    resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $wallet, 1_000_000, now());
+    resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalWithdrawal, $wallet, 100_000, now());
 
     expect($wallet->refresh()->cached_balance)->toBe(900_000)
         ->and($wallet->derivedBalance())->toBe(900_000);
 });
 
-test('a transfer moves balance from source to destination wallet', function () {
+test('a transfer moves balance from source to destination wallet', function (): void {
     [$user, $company, $bank] = setupBooks();
     $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 500_000, now());
-    app(CreateTransfer::class)->handle($company, $bank, $cash, 200_000, now());
+    resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 500_000, now());
+    resolve(CreateTransfer::class)->handle($company, $bank, $cash, 200_000, now());
 
     expect($bank->refresh()->cached_balance)->toBe(300_000)
         ->and($cash->refresh()->cached_balance)->toBe(200_000)
@@ -70,14 +70,14 @@ test('a transfer moves balance from source to destination wallet', function () {
         ->and($cash->derivedBalance())->toBe(200_000);
 });
 
-test('editing a transaction reverses the old amount and applies the new one', function () {
+test('editing a transaction reverses the old amount and applies the new one', function (): void {
     [$user, $company, $wallet, $income] = setupBooks();
 
-    $transaction = app(CreateTransaction::class)->handle(
+    $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $wallet, 100_000, now(), $income,
     );
 
-    app(UpdateTransaction::class)->handle(
+    resolve(UpdateTransaction::class)->handle(
         $transaction, $wallet, 150_000, now(), $income, description: 'Corrected amount',
     );
 
@@ -85,63 +85,63 @@ test('editing a transaction reverses the old amount and applies the new one', fu
         ->and($wallet->derivedBalance())->toBe(150_000);
 });
 
-test('editing a transaction onto a different wallet moves the balance', function () {
+test('editing a transaction onto a different wallet moves the balance', function (): void {
     [$user, $company, $bank, $income] = setupBooks();
     $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
 
-    $transaction = app(CreateTransaction::class)->handle(
+    $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $bank, 100_000, now(), $income,
     );
 
-    app(UpdateTransaction::class)->handle($transaction, $cash, 100_000, now(), $income);
+    resolve(UpdateTransaction::class)->handle($transaction, $cash, 100_000, now(), $income);
 
     expect($bank->refresh()->cached_balance)->toBe(0)
         ->and($cash->refresh()->cached_balance)->toBe(100_000);
 });
 
-test('voiding a transaction restores the wallet balance', function () {
+test('voiding a transaction restores the wallet balance', function (): void {
     [$user, $company, $wallet, $income] = setupBooks();
 
-    $transaction = app(CreateTransaction::class)->handle(
+    $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $wallet, 100_000, now(), $income,
     );
 
-    app(VoidTransaction::class)->handle($transaction);
+    resolve(VoidTransaction::class)->handle($transaction);
 
     expect($wallet->refresh()->cached_balance)->toBe(0)
         ->and($transaction->refresh()->isPosted())->toBeFalse()
         ->and($wallet->derivedBalance())->toBe(0);
 });
 
-test('a category kind mismatch is rejected', function () {
+test('a category kind mismatch is rejected', function (): void {
     [$user, $company, $wallet, $income, $expense] = setupBooks();
 
-    expect(fn () => app(CreateTransaction::class)->handle(
+    expect(fn () => resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $wallet, 10_000, now(), $expense,
     ))->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => app(CreateTransaction::class)->handle(
+    expect(fn () => resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Expense, $wallet, 10_000, now(), $income,
     ))->toThrow(InvalidArgumentException::class);
 });
 
-test('balances stay consistent after fifty randomized operations', function () {
+test('balances stay consistent after fifty randomized operations', function (): void {
     [$user, $company, $bank, $income, $expense] = setupBooks();
     $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 10_000_000, now());
+    resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 10_000_000, now());
 
     $transactions = [];
 
     foreach (range(1, 50) as $i) {
         $amount = random_int(100, 200_000);
-        $wallet = random_int(0, 1) ? $bank : $cash;
+        $wallet = random_int(0, 1) !== 0 ? $bank : $cash;
 
         match (random_int(1, 6)) {
-            1, 2 => $transactions[] = app(CreateTransaction::class)->handle($company, TransactionType::Income, $wallet, $amount, now(), $income),
-            3, 4 => $transactions[] = app(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, $amount, now(), $expense),
-            5 => $transactions[] = app(CreateTransfer::class)->handle($company, $wallet, $wallet->is($bank) ? $cash : $bank, $amount, now()),
-            6 => (function () use (&$transactions) {
+            1, 2 => $transactions[] = resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $wallet, $amount, now(), $income),
+            3, 4 => $transactions[] = resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, $amount, now(), $expense),
+            5 => $transactions[] = resolve(CreateTransfer::class)->handle($company, $wallet, $wallet->is($bank) ? $cash : $bank, $amount, now()),
+            6 => (function () use (&$transactions): void {
                 if ($transactions === []) {
                     return;
                 }
@@ -149,7 +149,7 @@ test('balances stay consistent after fifty randomized operations', function () {
                 $candidate = $transactions[array_rand($transactions)]->refresh();
 
                 if ($candidate->isPosted()) {
-                    app(VoidTransaction::class)->handle($candidate);
+                    resolve(VoidTransaction::class)->handle($candidate);
                 }
             })(),
         };
@@ -161,17 +161,17 @@ test('balances stay consistent after fifty randomized operations', function () {
         ->and($cash->refresh()->cached_balance)->toBe($cash->derivedBalance());
 });
 
-test('the transactions index reports filtered totals excluding transfers', function () {
+test('the transactions index reports filtered totals excluding transfers', function (): void {
     [$user, $company, $wallet, $income, $expense] = setupBooks();
     $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Income, $wallet, 100_000, now(), $income, creator: $user);
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 40_000, now(), $expense, creator: $user);
-    app(CreateTransfer::class)->handle($company, $wallet, $cash, 20_000, now(), creator: $user);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $wallet, 100_000, now(), $income, creator: $user);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 40_000, now(), $expense, creator: $user);
+    resolve(CreateTransfer::class)->handle($company, $wallet, $cash, 20_000, now(), creator: $user);
 
     $this->actingAs($user)
         ->get(route('transactions.index', ['current_company' => $company->slug]))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('transactions/index')
             ->where('totals.in', 100_000)
             ->where('totals.out', 40_000)
@@ -179,7 +179,7 @@ test('the transactions index reports filtered totals excluding transfers', funct
 
     $this->actingAs($user)
         ->get(route('transactions.index', ['current_company' => $company->slug, 'type' => 'expense']))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('totals.in', 0)
             ->where('totals.out', 40_000)
             ->where('totals.net', -40_000));

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('install')
     ->name('install.')
     ->middleware(EnsureNotInstalled::class)
-    ->group(function () {
+    ->group(function (): void {
         Route::get('/', [InstallerController::class, 'requirements'])->name('index');
         Route::get('database', [InstallerController::class, 'database'])->name('database');
         Route::post('database', [InstallerController::class, 'storeDatabase'])->name('database.store');

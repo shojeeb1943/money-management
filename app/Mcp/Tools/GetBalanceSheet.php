@@ -7,7 +7,7 @@ namespace App\Mcp\Tools;
 use App\Mcp\Concerns\InteractsWithCompany;
 use App\Services\Reports\BalanceSheetReport;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -37,7 +37,7 @@ final class GetBalanceSheet extends Tool
         $company = $this->company($request);
 
         $asOf = $request->get('as_of') !== null
-            ? Carbon::parse((string) $request->get('as_of'))
+            ? Date::parse((string) $request->get('as_of'))
             : now($company->timezone);
 
         return Response::json([

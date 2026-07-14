@@ -33,7 +33,7 @@ final class CompanyFactory extends Factory
      */
     public function trashed(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'deleted_at' => now(),
         ]);
     }

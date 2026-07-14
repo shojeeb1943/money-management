@@ -32,7 +32,7 @@ final class InstallerController extends Controller
     public function database(CheckRequirements $checkRequirements): Response|RedirectResponse
     {
         if (! $checkRequirements->handle()['passes']) {
-            return redirect()->route('install.index');
+            return to_route('install.index');
         }
 
         return Inertia::render('install/database');
@@ -54,21 +54,21 @@ final class InstallerController extends Controller
 
         try {
             $testConnection->handle($connection, $overrides);
-        } catch (Throwable $exception) {
+        } catch (Throwable $throwable) {
             throw ValidationException::withMessages([
-                'connection' => __('Could not connect to the database: :message', ['message' => $exception->getMessage()]),
+                'connection' => __('Could not connect to the database: :message', ['message' => $throwable->getMessage()]),
             ]);
         }
 
         $writeEnvironment->handle($connection, $overrides, $request->root());
 
-        return redirect()->route('install.migrations');
+        return to_route('install.migrations');
     }
 
     public function migrations(): Response|RedirectResponse
     {
         if (! $this->databaseConnects()) {
-            return redirect()->route('install.database');
+            return to_route('install.database');
         }
 
         return Inertia::render('install/migrations');
@@ -77,22 +77,22 @@ final class InstallerController extends Controller
     public function runMigrations(RunMigrations $runMigrations): RedirectResponse
     {
         if (! $this->databaseConnects()) {
-            return redirect()->route('install.database');
+            return to_route('install.database');
         }
 
         try {
             $runMigrations->handle();
-        } catch (Throwable $exception) {
-            throw ValidationException::withMessages(['setup' => $exception->getMessage()]);
+        } catch (Throwable $throwable) {
+            throw ValidationException::withMessages(['setup' => $throwable->getMessage()]);
         }
 
-        return redirect()->route('install.admin');
+        return to_route('install.admin');
     }
 
     public function admin(): Response|RedirectResponse
     {
         if (! $this->databaseConnects() || ! Schema::hasTable('users')) {
-            return redirect()->route('install.migrations');
+            return to_route('install.migrations');
         }
 
         return Inertia::render('install/admin');
@@ -101,7 +101,7 @@ final class InstallerController extends Controller
     public function storeAdmin(StoreAdminRequest $request, CreateAdminAccount $createAdmin): RedirectResponse
     {
         if (! $this->databaseConnects() || ! Schema::hasTable('users')) {
-            return redirect()->route('install.migrations');
+            return to_route('install.migrations');
         }
 
         $createAdmin->handle(
@@ -113,7 +113,7 @@ final class InstallerController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Installation complete. Log in with your new account.')]);
 
-        return redirect()->route('login');
+        return to_route('login');
     }
 
     private function databaseConnects(): bool

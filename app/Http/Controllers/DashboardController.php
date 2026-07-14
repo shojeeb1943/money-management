@@ -11,7 +11,7 @@ use App\Models\Transaction;
 use App\Services\Reports\CashFlowReport;
 use App\Services\Reports\IncomeStatementReport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,17 +21,17 @@ final class DashboardController extends Controller
     {
         $timezone = $current_company->timezone;
         $from = $request->filled('from')
-            ? Carbon::parse($request->string('from')->toString())
+            ? Date::parse($request->string('from')->toString())
             : now($timezone)->startOfMonth();
         $to = $request->filled('to')
-            ? Carbon::parse($request->string('to')->toString())
+            ? Date::parse($request->string('to')->toString())
             : now($timezone)->endOfMonth();
 
         $periodStatement = $incomeStatement->generate($current_company, $from, $to);
         $periodCashFlow = $cashFlow->generate($current_company, $from, $to);
         $totalCash = (int) $current_company->wallets()->active()->where('currency', $current_company->currency)->sum('cached_balance');
 
-        $trend = collect(range(5, 0))->map(function (int $monthsAgo) use ($current_company, $incomeStatement, $timezone) {
+        $trend = collect(range(5, 0))->map(function (int $monthsAgo) use ($current_company, $incomeStatement, $timezone): array {
             $month = now($timezone)->subMonthsNoOverflow($monthsAgo);
             $report = $incomeStatement->generate($current_company, $month->copy()->startOfMonth(), $month->copy()->endOfMonth());
 
@@ -48,7 +48,7 @@ final class DashboardController extends Controller
             ->where('is_active', true)
             ->with('category')
             ->get()
-            ->map(fn (Budget $budget) => [
+            ->map(fn (Budget $budget): array => [
                 'id' => $budget->id,
                 'categoryName' => $budget->category->name,
                 'categoryColor' => $budget->category->color,
@@ -56,7 +56,7 @@ final class DashboardController extends Controller
                 'period' => $budget->period,
                 'spent' => $budgetEvaluator->periodSpend($current_company, $budget->category, now($timezone), $budget->period),
             ])
-            ->sortByDesc(fn (array $budget) => $budget['amount'] > 0 ? $budget['spent'] / $budget['amount'] : 0)
+            ->sortByDesc(fn (array $budget): int|float => $budget['amount'] > 0 ? $budget['spent'] / $budget['amount'] : 0)
             ->take(4)
             ->values();
 
@@ -78,7 +78,7 @@ final class DashboardController extends Controller
                 ->orderByDesc('id')
                 ->limit(6)
                 ->get()
-                ->map(fn (Transaction $transaction) => [
+                ->map(fn (Transaction $transaction): array => [
                     'id' => $transaction->id,
                     'type' => $transaction->type->value,
                     'typeLabel' => $transaction->type->label(),

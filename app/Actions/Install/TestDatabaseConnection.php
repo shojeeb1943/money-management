@@ -13,7 +13,7 @@ final class TestDatabaseConnection
      */
     public function handle(string $connection, array $overrides): void
     {
-        $config = array_merge(config("database.connections.{$connection}"), $overrides);
+        $config = array_merge(config('database.connections.'.$connection), $overrides);
 
         if ($connection === 'sqlite' && $config['database'] !== ':memory:' && ! file_exists($config['database'])) {
             touch($config['database']);

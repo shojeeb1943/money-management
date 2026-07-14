@@ -15,7 +15,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class CreateTransaction
+final readonly class CreateTransaction
 {
     public function __construct(private ApplyTransactionBalance $applyBalance) {}
 
@@ -33,7 +33,7 @@ final class CreateTransaction
         $this->validate($company, $type, $wallet, $amount, $category);
 
         return DB::transaction(function () use ($company, $type, $wallet, $amount, $date, $category, $description, $reference, $creator) {
-            $transaction = Transaction::create([
+            $transaction = Transaction::query()->create([
                 'company_id' => $company->id,
                 'type' => $type,
                 'wallet_id' => $wallet->id,
@@ -55,31 +55,17 @@ final class CreateTransaction
 
     private function validate(Company $company, TransactionType $type, Wallet $wallet, int $amount, ?Category $category): void
     {
-        if ($amount < 1) {
-            throw new InvalidArgumentException('Amount must be positive.');
-        }
+        throw_if($amount < 1, InvalidArgumentException::class, 'Amount must be positive.');
 
-        if ($type === TransactionType::Transfer) {
-            throw new InvalidArgumentException('Use CreateTransfer for transfers.');
-        }
+        throw_if($type === TransactionType::Transfer, InvalidArgumentException::class, 'Use CreateTransfer for transfers.');
 
-        if ($wallet->company_id !== $company->id) {
-            throw new InvalidArgumentException('Wallet belongs to another company.');
-        }
+        throw_if($wallet->company_id !== $company->id, InvalidArgumentException::class, 'Wallet belongs to another company.');
 
         if ($type->requiresCategory()) {
-            if ($category === null) {
-                throw new InvalidArgumentException('This transaction type requires a category.');
-            }
-
-            if ($category->company_id !== $company->id) {
-                throw new InvalidArgumentException('Category belongs to another company.');
-            }
-
-            if ($category->kind !== $type->categoryKind()) {
-                throw new InvalidArgumentException('Category kind does not match the transaction type.');
-            }
-        } elseif ($category !== null) {
+            throw_if(! $category instanceof Category, InvalidArgumentException::class, 'This transaction type requires a category.');
+            throw_if($category->company_id !== $company->id, InvalidArgumentException::class, 'Category belongs to another company.');
+            throw_if($category->kind !== $type->categoryKind(), InvalidArgumentException::class, 'Category kind does not match the transaction type.');
+        } elseif ($category instanceof Category) {
             throw new InvalidArgumentException('This transaction type does not take a category.');
         }
     }

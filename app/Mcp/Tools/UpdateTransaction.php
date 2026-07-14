@@ -10,7 +10,7 @@ use App\Models\Transaction;
 use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
@@ -72,14 +72,13 @@ final class UpdateTransaction extends Tool
                 $transaction,
                 $wallet,
                 $request->get('amount') !== null ? Money::toMinorUnits((string) $request->get('amount')) : $transaction->amount,
-                $request->get('date') !== null ? Carbon::parse((string) $request->get('date')) : Carbon::parse($transaction->date->toDateString()),
+                $request->get('date') !== null ? Date::parse((string) $request->get('date')) : Date::parse($transaction->date->toDateString()),
                 $category,
                 $request->get('description', $transaction->description),
                 $request->get('reference', $transaction->reference),
-                $this->authenticatedUser($request),
             );
-        } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return Response::error($invalidArgumentException->getMessage());
         }
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'updated', $transaction, [

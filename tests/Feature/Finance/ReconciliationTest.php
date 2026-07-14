@@ -11,18 +11,18 @@ use App\Models\User;
 function reconcileSetup(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 1_000_000, now());
+    resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 1_000_000, now());
 
     return [$user, $company, $bank];
 }
 
-test('a shortage posts an expense adjustment and the balance matches reality', function () {
+test('a shortage posts an expense adjustment and the balance matches reality', function (): void {
     [$user, $company, $bank] = reconcileSetup();
 
-    $transaction = app(ReconcileWallet::class)->handle($bank, 950_000, $user);
+    $transaction = resolve(ReconcileWallet::class)->handle($bank, 950_000, $user);
 
     expect($transaction->type)->toBe(TransactionType::Expense)
         ->and($transaction->amount)->toBe(50_000)
@@ -33,24 +33,24 @@ test('a shortage posts an expense adjustment and the balance matches reality', f
     $this->artisan('moneta:verify-balances')->assertSuccessful();
 });
 
-test('an overage posts an income adjustment', function () {
+test('an overage posts an income adjustment', function (): void {
     [$user, $company, $bank] = reconcileSetup();
 
-    $transaction = app(ReconcileWallet::class)->handle($bank, 1_020_000, $user);
+    $transaction = resolve(ReconcileWallet::class)->handle($bank, 1_020_000, $user);
 
     expect($transaction->type)->toBe(TransactionType::Income)
         ->and($transaction->amount)->toBe(20_000)
         ->and($bank->refresh()->cached_balance)->toBe(1_020_000);
 });
 
-test('a matching balance posts nothing', function () {
+test('a matching balance posts nothing', function (): void {
     [$user, $company, $bank] = reconcileSetup();
 
-    expect(app(ReconcileWallet::class)->handle($bank, 1_000_000, $user))->toBeNull()
+    expect(resolve(ReconcileWallet::class)->handle($bank, 1_000_000, $user))->toBeNull()
         ->and($company->transactions()->count())->toBe(1);
 });
 
-test('reconciliation works through the endpoint with a decimal balance', function () {
+test('reconciliation works through the endpoint with a decimal balance', function (): void {
     [$user, $company, $bank] = reconcileSetup();
 
     $this->actingAs($user)
@@ -62,11 +62,11 @@ test('reconciliation works through the endpoint with a decimal balance', functio
     expect($bank->refresh()->cached_balance)->toBe(950_050);
 });
 
-test('repeated reconciliation reuses the adjustment category', function () {
+test('repeated reconciliation reuses the adjustment category', function (): void {
     [$user, $company, $bank] = reconcileSetup();
 
-    app(ReconcileWallet::class)->handle($bank, 950_000, $user);
-    app(ReconcileWallet::class)->handle($bank, 900_000, $user);
+    resolve(ReconcileWallet::class)->handle($bank, 950_000, $user);
+    resolve(ReconcileWallet::class)->handle($bank, 900_000, $user);
 
     expect($company->categories()->where('name', ReconcileWallet::ADJUSTMENT_CATEGORY)->count())->toBe(1);
 });

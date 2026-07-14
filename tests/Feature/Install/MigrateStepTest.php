@@ -6,22 +6,22 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Passport\Passport;
 
-beforeEach(function () {
-    $this->flag = sys_get_temp_dir().'/moneta-installed-'.uniqid();
-    config(['installer.installed' => null, 'installer.flag_path' => $this->flag]);
-});
-
-afterEach(function () {
+beforeEach(function (): void {
+    $this->flag = storage_path('installed');
     @unlink($this->flag);
 });
 
-test('the migrations step renders when the database connects', function () {
+afterEach(function (): void {
+    touch($this->flag);
+});
+
+test('the migrations step renders when the database connects', function (): void {
     $this->get(route('install.migrations'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('install/migrations'));
 });
 
-test('running migrations creates the schema and redirects to the admin step', function () {
+test('running migrations creates the schema and redirects to the admin step', function (): void {
     $this->post(route('install.migrations.run'))
         ->assertRedirect(route('install.admin'));
 
@@ -29,7 +29,7 @@ test('running migrations creates the schema and redirects to the admin step', fu
         ->and(Schema::hasTable('companies'))->toBeTrue();
 });
 
-test('running migrations generates missing passport keys', function () {
+test('running migrations generates missing passport keys', function (): void {
     $keyDir = sys_get_temp_dir().'/moneta-passport-'.uniqid();
     File::ensureDirectoryExists($keyDir);
     Passport::loadKeysFrom($keyDir);
@@ -47,7 +47,7 @@ test('running migrations generates missing passport keys', function () {
     }
 });
 
-test('the admin step renders once the schema exists', function () {
+test('the admin step renders once the schema exists', function (): void {
     $this->get(route('install.admin'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('install/admin'));

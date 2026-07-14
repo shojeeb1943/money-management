@@ -10,7 +10,7 @@ use App\Support\InstallationState;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class CreateAdminAccount
+final readonly class CreateAdminAccount
 {
     public function __construct(
         private CreateCompany $createCompany,
@@ -19,12 +19,10 @@ final class CreateAdminAccount
 
     public function handle(string $name, string $email, string $password, string $companyName): User
     {
-        if (User::exists()) {
-            throw new InvalidArgumentException('An account already exists.');
-        }
+        throw_if(User::query()->exists(), InvalidArgumentException::class, 'An account already exists.');
 
         $user = DB::transaction(function () use ($name, $email, $password, $companyName) {
-            $user = User::create([
+            $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
                 'password' => $password,

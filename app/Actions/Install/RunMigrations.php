@@ -10,7 +10,7 @@ use Laravel\Passport\Passport;
 use phpseclib3\Crypt\RSA;
 use RuntimeException;
 
-final class RunMigrations
+final readonly class RunMigrations
 {
     public function __construct(private EnsurePersonalAccessClient $ensurePersonalAccessClient) {}
 
@@ -34,10 +34,8 @@ final class RunMigrations
 
         $key = RSA::createKey(4096);
 
-        if (file_put_contents($publicKey, (string) $key->getPublicKey()) === false
-            || file_put_contents($privateKey, (string) $key) === false) {
-            throw new RuntimeException("Unable to write Passport keys at {$privateKey}. Check that the directory is writable.");
-        }
+        throw_if(file_put_contents($publicKey, (string) $key->getPublicKey()) === false
+            || file_put_contents($privateKey, (string) $key) === false, RuntimeException::class, sprintf('Unable to write Passport keys at %s. Check that the directory is writable.', $privateKey));
 
         if (! windows_os()) {
             chmod($publicKey, 0660);

@@ -16,7 +16,7 @@ trait RedirectsToCurrentCompany
 
         URL::defaults(['current_company' => $company->slug]);
 
-        return "/{$company->slug}{$redirect}";
+        return sprintf('/%s%s', $company->slug, $redirect);
     }
 
     protected function currentCompany(Request $request): Company

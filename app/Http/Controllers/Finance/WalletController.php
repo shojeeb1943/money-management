@@ -28,10 +28,10 @@ final class WalletController extends Controller
     {
         return Inertia::render('wallets/index', [
             'wallets' => $current_company->wallets()
-                ->orderBy('archived_at')
+                ->oldest('archived_at')
                 ->orderBy('name')
                 ->get()
-                ->map(fn (Wallet $wallet) => $this->walletPayload($wallet)),
+                ->map(fn (Wallet $wallet): array => $this->walletPayload($wallet)),
             'walletTypes' => WalletType::options(),
         ]);
     }
@@ -73,7 +73,7 @@ final class WalletController extends Controller
 
         $running = $wallet->cached_balance - (int) $newerDelta;
 
-        $ledger = collect($entries->items())->map(function (Transaction $transaction) use (&$running, $deltaFor) {
+        $ledger = collect($entries->items())->map(function (Transaction $transaction) use (&$running, $deltaFor): array {
             $delta = $deltaFor($transaction);
             $row = [
                 'id' => $transaction->id,
@@ -169,9 +169,9 @@ final class WalletController extends Controller
             'adjustment' => $transaction->amount ?? 0,
         ]);
 
-        Inertia::flash('toast', $transaction === null
-            ? ['type' => 'info', 'message' => __('Balance already matches — nothing to adjust.')]
-            : ['type' => 'success', 'message' => __('Adjustment of :amount posted.', ['amount' => Money::format($transaction->amount, $wallet->currency)])]);
+        Inertia::flash('toast', $transaction instanceof Transaction
+            ? ['type' => 'success', 'message' => __('Adjustment of :amount posted.', ['amount' => Money::format($transaction->amount, $wallet->currency)])]
+            : ['type' => 'info', 'message' => __('Balance already matches — nothing to adjust.')]);
 
         return back();
     }

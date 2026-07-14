@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('the companies index page can be rendered', function () {
+test('the companies index page can be rendered', function (): void {
     $user = User::factory()->create();
 
     $response = $this
@@ -16,7 +16,7 @@ test('the companies index page can be rendered', function () {
     $response->assertOk();
 });
 
-test('companies can be created', function () {
+test('companies can be created', function (): void {
     $user = User::factory()->create();
 
     $response = $this
@@ -32,7 +32,7 @@ test('companies can be created', function () {
     ]);
 });
 
-test('company slug uses next available suffix', function () {
+test('company slug uses next available suffix', function (): void {
     $user = User::factory()->create();
 
     Company::factory()->create(['name' => 'Acme', 'slug' => 'acme']);
@@ -51,7 +51,7 @@ test('company slug uses next available suffix', function () {
     ]);
 });
 
-test('the company edit page can be rendered', function () {
+test('the company edit page can be rendered', function (): void {
     $user = User::factory()->create();
     $company = Company::factory()->create();
 
@@ -61,14 +61,14 @@ test('the company edit page can be rendered', function () {
 
     $response
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
+        ->assertInertia(fn (Assert $page): Assert => $page
             ->component('companies/edit')
             ->where('company.slug', $company->slug)
             ->where('canDelete', true),
         );
 });
 
-test('companies can be updated', function () {
+test('companies can be updated', function (): void {
     $user = User::factory()->create();
     $company = Company::factory()->create(['name' => 'Original Name']);
 
@@ -86,7 +86,7 @@ test('companies can be updated', function () {
     ]);
 });
 
-test('companies can be deleted', function () {
+test('companies can be deleted', function (): void {
     $user = User::factory()->create();
     $company = Company::factory()->create();
 
@@ -103,7 +103,7 @@ test('companies can be deleted', function () {
     ]);
 });
 
-test('company deletion requires name confirmation', function () {
+test('company deletion requires name confirmation', function (): void {
     $user = User::factory()->create();
     $company = Company::factory()->create();
 
@@ -121,7 +121,7 @@ test('company deletion requires name confirmation', function () {
     ]);
 });
 
-test('deleting current company switches to alphabetically first remaining company', function () {
+test('deleting current company switches to alphabetically first remaining company', function (): void {
     $user = User::factory()->create(['name' => 'Mike']);
 
     $zuluCompany = Company::factory()->create(['name' => 'Zulu Company']);
@@ -145,7 +145,7 @@ test('deleting current company switches to alphabetically first remaining compan
     expect($user->fresh()->currentCompany->name)->toEqual('Alpha Company');
 });
 
-test('deleting non current company leaves current company unchanged', function () {
+test('deleting non current company leaves current company unchanged', function (): void {
     $user = User::factory()->create();
     $currentCompany = $user->currentCompany;
     $company = Company::factory()->create();
@@ -165,7 +165,7 @@ test('deleting non current company leaves current company unchanged', function (
     expect($user->fresh()->current_company_id)->toEqual($currentCompany->id);
 });
 
-test('the last remaining company cannot be deleted', function () {
+test('the last remaining company cannot be deleted', function (): void {
     $user = User::factory()->create();
     $company = $user->currentCompany;
 
@@ -183,7 +183,7 @@ test('the last remaining company cannot be deleted', function () {
     ]);
 });
 
-test('users can switch companies', function () {
+test('users can switch companies', function (): void {
     $user = User::factory()->create();
     $company = Company::factory()->create();
 
@@ -196,7 +196,7 @@ test('users can switch companies', function () {
     expect($user->fresh()->current_company_id)->toEqual($company->id);
 });
 
-test('guests cannot access companies', function () {
+test('guests cannot access companies', function (): void {
     $response = $this->get(route('companies.index'));
 
     $response->assertRedirect(route('login'));

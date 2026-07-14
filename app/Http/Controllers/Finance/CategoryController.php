@@ -37,10 +37,10 @@ final class CategoryController extends Controller
             ->flip();
 
         $hasActivity = $categories->mapWithKeys(
-            fn (Category $category) => [$category->id => $categoriesWithActivity->has($category->id)],
+            fn (Category $category): array => [$category->id => $categoriesWithActivity->has($category->id)],
         );
 
-        $payload = $categories->map(fn (Category $category) => [
+        $payload = $categories->map(fn (Category $category): array => [
             'id' => $category->id,
             'parentId' => $category->parent_id,
             'kind' => $category->kind->value,
@@ -110,8 +110,8 @@ final class CategoryController extends Controller
 
         try {
             $deleteCategory->handle($category);
-        } catch (RuntimeException $exception) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
+        } catch (RuntimeException $runtimeException) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => $runtimeException->getMessage()]);
 
             return back();
         }

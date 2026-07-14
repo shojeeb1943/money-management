@@ -5,16 +5,16 @@ declare(strict_types=1);
 use App\Models\Company;
 use App\Models\User;
 
-beforeEach(function () {
-    $this->flag = sys_get_temp_dir().'/moneta-installed-'.uniqid();
-    config(['installer.installed' => null, 'installer.flag_path' => $this->flag]);
-});
-
-afterEach(function () {
+beforeEach(function (): void {
+    $this->flag = storage_path('installed');
     @unlink($this->flag);
 });
 
-test('creating the admin account finishes the installation', function () {
+afterEach(function (): void {
+    touch($this->flag);
+});
+
+test('creating the admin account finishes the installation', function (): void {
     $this->post(route('install.admin.store'), [
         'name' => 'Admin',
         'email' => 'admin@example.com',
@@ -23,8 +23,8 @@ test('creating the admin account finishes the installation', function () {
         'company' => 'Acme Studio',
     ])->assertRedirect(route('login'));
 
-    $user = User::where('email', 'admin@example.com')->firstOrFail();
-    $company = Company::where('name', 'Acme Studio')->firstOrFail();
+    $user = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
 
     expect($user->currentCompany->is($company))->toBeTrue()
         ->and($company->wallets()->count())->toBeGreaterThan(0)
@@ -37,7 +37,7 @@ test('creating the admin account finishes the installation', function () {
     $this->assertAuthenticated();
 });
 
-test('the installer locks after the admin account is created', function () {
+test('the installer locks after the admin account is created', function (): void {
     $this->post(route('install.admin.store'), [
         'name' => 'Admin',
         'email' => 'admin@example.com',
@@ -54,10 +54,10 @@ test('the installer locks after the admin account is created', function () {
         'company' => 'Evil Corp',
     ])->assertRedirect('/');
 
-    expect(User::count())->toBe(1);
+    expect(User::query()->count())->toBe(1);
 });
 
-test('the installer self-heals when users already exist', function () {
+test('the installer self-heals when users already exist', function (): void {
     User::factory()->create();
 
     $this->get(route('install.admin'))->assertRedirect('/');
@@ -67,7 +67,7 @@ test('the installer self-heals when users already exist', function () {
     $this->get('/login')->assertOk();
 });
 
-test('the database step is locked when users already exist without a flag', function () {
+test('the database step is locked when users already exist without a flag', function (): void {
     User::factory()->create();
 
     $this->get(route('install.database'))->assertRedirect('/');
@@ -76,7 +76,7 @@ test('the database step is locked when users already exist without a flag', func
     expect(file_exists($this->flag))->toBeTrue();
 });
 
-test('the admin account requires a confirmed password', function () {
+test('the admin account requires a confirmed password', function (): void {
     $this->post(route('install.admin.store'), [
         'name' => 'Admin',
         'email' => 'admin@example.com',
@@ -85,5 +85,5 @@ test('the admin account requires a confirmed password', function () {
         'company' => 'Acme Studio',
     ])->assertSessionHasErrors('password');
 
-    expect(User::count())->toBe(0);
+    expect(User::query()->count())->toBe(0);
 });

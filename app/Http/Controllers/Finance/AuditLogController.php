@@ -23,7 +23,7 @@ final class AuditLogController extends Controller
             ->paginate(50);
 
         return Inertia::render('audit/index', [
-            'logs' => collect($logs->items())->map(fn (AuditLog $log) => [
+            'logs' => collect($logs->items())->map(fn (AuditLog $log): array => [
                 'id' => $log->id,
                 'userName' => $log->user->name ?? 'System',
                 'action' => $log->action,

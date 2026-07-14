@@ -9,6 +9,7 @@ use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,8 +41,10 @@ use Illuminate\Support\Carbon;
 #[Fillable(['company_id', 'type', 'wallet_id', 'counter_wallet_id', 'category_id', 'amount', 'currency', 'date', 'description', 'reference', 'status', 'created_by'])]
 final class Transaction extends Model
 {
+    use BelongsToCompany;
+
     /** @use HasFactory<TransactionFactory> */
-    use BelongsToCompany, HasFactory;
+    use HasFactory;
 
     /**
      * @return BelongsTo<Wallet, $this>
@@ -75,15 +78,6 @@ final class Transaction extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopePosted(Builder $query): Builder
-    {
-        return $query->where($this->qualifyColumn('status'), TransactionStatus::Posted);
-    }
-
     public function isPosted(): bool
     {
         return $this->status === TransactionStatus::Posted;
@@ -96,6 +90,16 @@ final class Transaction extends Model
             TransactionType::Expense, TransactionType::CapitalWithdrawal => -$this->amount,
             TransactionType::Transfer => 0,
         };
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function posted(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('status'), TransactionStatus::Posted);
     }
 
     /**

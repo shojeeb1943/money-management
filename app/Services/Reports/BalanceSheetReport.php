@@ -55,7 +55,7 @@ final class BalanceSheetReport
             ['id' => 1, 'name' => 'Capital', 'amount' => $capital],
             ['id' => 2, 'name' => 'Withdrawals', 'amount' => -$withdrawals],
             ['id' => 3, 'name' => 'Opening Balances', 'amount' => $openingTotal],
-        ], fn (array $row) => $row['amount'] !== 0));
+        ], fn (array $row): bool => $row['amount'] !== 0));
 
         $totalAssets = array_sum(array_column($assets, 'amount'));
         $totalEquity = $capital - $withdrawals + $openingTotal + $retainedEarnings;
@@ -113,7 +113,7 @@ final class BalanceSheetReport
             ->groupBy('type')
             ->selectRaw('type, COALESCE(SUM(amount), 0) as total')
             ->pluck('total', 'type')
-            ->map(fn ($total) => (int) $total)
+            ->map(fn ($total): int => (int) $total)
             ->all();
     }
 }

@@ -8,10 +8,11 @@ use App\Actions\Budgets\EvaluateBudgetAlert;
 use App\Actions\Transactions\CreateTransaction;
 use App\Enums\TransactionType;
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Category;
 use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -62,8 +63,8 @@ final class RecordTransaction extends Tool
             : null;
 
         $date = $request->get('date') !== null
-            ? Carbon::parse((string) $request->get('date'))
-            : Carbon::parse(now($company->timezone)->toDateString());
+            ? Date::parse((string) $request->get('date'))
+            : Date::parse(now($company->timezone)->toDateString());
 
         try {
             $transaction = $this->createTransaction->handle(
@@ -77,8 +78,8 @@ final class RecordTransaction extends Tool
                 $request->get('reference'),
                 $this->authenticatedUser($request),
             );
-        } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return Response::error($invalidArgumentException->getMessage());
         }
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'created', $transaction, [
@@ -88,7 +89,7 @@ final class RecordTransaction extends Tool
             'via' => 'mcp',
         ]);
 
-        $alert = $type === TransactionType::Expense && $category !== null
+        $alert = $type === TransactionType::Expense && $category instanceof Category
             ? $this->evaluateBudgetAlert->handle($company, $category, $transaction->date)
             : null;
 

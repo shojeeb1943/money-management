@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Artisan;
 use Inertia\Testing\AssertableInertia;
 use Laravel\Passport\ClientRepository;
 
-beforeEach(function () {
+beforeEach(function (): void {
     Artisan::call('passport:keys');
 });
 
-test('a user can create an api token and sees it once', function () {
+test('a user can create an api token and sees it once', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -23,15 +23,15 @@ test('a user can create an api token and sees it once', function () {
 
     $this->actingAs($user)
         ->get(route('api-tokens.index'))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('settings/api-tokens')
             ->has('tokens', 1)
             ->where('tokens.0.name', 'Claude Code'));
 });
 
-test('a user can revoke an api token', function () {
+test('a user can revoke an api token', function (): void {
     $user = User::factory()->create();
-    app(ClientRepository::class)->createPersonalAccessGrantClient('Test Personal Client', 'users');
+    resolve(ClientRepository::class)->createPersonalAccessGrantClient('Test Personal Client', 'users');
     $token = $user->createToken('Old agent');
 
     $this->actingAs($user)
@@ -41,9 +41,9 @@ test('a user can revoke an api token', function () {
     expect($user->tokens()->where('revoked', false)->count())->toBe(0);
 });
 
-test('a user cannot revoke another users token', function () {
+test('a user cannot revoke another users token', function (): void {
     $owner = User::factory()->create();
-    app(ClientRepository::class)->createPersonalAccessGrantClient('Test Personal Client', 'users');
+    resolve(ClientRepository::class)->createPersonalAccessGrantClient('Test Personal Client', 'users');
     $token = $owner->createToken('Mine');
 
     $other = User::factory()->create();

@@ -14,17 +14,17 @@ use App\Services\Reports\IncomeStatementReport;
 function currencySetup(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
-    $usdWallet = app(CreateWallet::class)->handle($company, 'Payoneer USD', WalletType::Bank, openingBalance: 100_000, currency: 'USD');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
+    $usdWallet = resolve(CreateWallet::class)->handle($company, 'Payoneer USD', WalletType::Bank, openingBalance: 100_000, currency: 'USD');
 
     return [$user, $company, $usdWallet];
 }
 
-test('a USD wallet tracks balances in its own currency', function () {
+test('a USD wallet tracks balances in its own currency', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
     $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
 
-    $transaction = app(CreateTransaction::class)->handle(
+    $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $usdWallet, 50_000, now(), $commission,
     );
 
@@ -35,23 +35,23 @@ test('a USD wallet tracks balances in its own currency', function () {
     $this->artisan('moneta:verify-balances')->assertSuccessful();
 });
 
-test('cross-currency transfers are rejected', function () {
+test('cross-currency transfers are rejected', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
 
-    expect(fn () => app(CreateTransfer::class)->handle($company, $usdWallet, $bank, 10_000, now()))
+    expect(fn () => resolve(CreateTransfer::class)->handle($company, $usdWallet, $bank, 10_000, now()))
         ->toThrow(InvalidArgumentException::class, 'different currencies');
 });
 
-test('BDT reports exclude foreign-currency activity', function () {
+test('BDT reports exclude foreign-currency activity', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
     $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 200_000, now(), $commission);
-    app(CreateTransaction::class)->handle($company, TransactionType::Income, $usdWallet, 999_999, now(), $commission);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 200_000, now(), $commission);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $usdWallet, 999_999, now(), $commission);
 
-    $report = app(IncomeStatementReport::class)->generate($company, now()->startOfMonth(), now()->endOfMonth());
+    $report = resolve(IncomeStatementReport::class)->generate($company, now()->startOfMonth(), now()->endOfMonth());
 
     expect($report['totalIncome'])->toBe(200_000);
 });

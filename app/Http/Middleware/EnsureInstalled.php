@@ -9,7 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class EnsureInstalled
+final readonly class EnsureInstalled
 {
     public function __construct(private InstallationState $state) {}
 
@@ -23,6 +23,6 @@ final class EnsureInstalled
             return $next($request);
         }
 
-        return redirect()->route('install.index');
+        return to_route('install.index');
     }
 }

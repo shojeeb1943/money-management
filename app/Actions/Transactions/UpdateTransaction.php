@@ -6,13 +6,12 @@ namespace App\Actions\Transactions;
 
 use App\Models\Category;
 use App\Models\Transaction;
-use App\Models\User;
 use App\Models\Wallet;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class UpdateTransaction
+final readonly class UpdateTransaction
 {
     public function __construct(private ApplyTransactionBalance $applyBalance) {}
 
@@ -24,17 +23,12 @@ final class UpdateTransaction
         ?Category $category = null,
         ?string $description = null,
         ?string $reference = null,
-        ?User $editor = null,
     ): Transaction {
-        if (! $transaction->isPosted()) {
-            throw new InvalidArgumentException('A voided transaction cannot be edited.');
-        }
+        throw_unless($transaction->isPosted(), InvalidArgumentException::class, 'A voided transaction cannot be edited.');
 
-        if ($amount < 1) {
-            throw new InvalidArgumentException('Amount must be positive.');
-        }
+        throw_if($amount < 1, InvalidArgumentException::class, 'Amount must be positive.');
 
-        return DB::transaction(function () use ($transaction, $wallet, $amount, $date, $category, $description, $reference) {
+        return DB::transaction(function () use ($transaction, $wallet, $amount, $date, $category, $description, $reference): Transaction {
             $this->applyBalance->handle($transaction, direction: -1);
 
             $transaction->update([

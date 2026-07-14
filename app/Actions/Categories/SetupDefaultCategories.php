@@ -7,7 +7,7 @@ namespace App\Actions\Categories;
 use App\Enums\CategoryKind;
 use App\Models\Company;
 
-final class SetupDefaultCategories
+final readonly class SetupDefaultCategories
 {
     private const array DEFAULTS = [
         CategoryKind::Income->value => [

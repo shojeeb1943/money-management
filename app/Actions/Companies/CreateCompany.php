@@ -10,7 +10,7 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-final class CreateCompany
+final readonly class CreateCompany
 {
     public function __construct(
         private SetupDefaultWallets $setupDefaultWallets,
@@ -20,7 +20,7 @@ final class CreateCompany
     public function handle(User $user, string $name): Company
     {
         return DB::transaction(function () use ($user, $name) {
-            $company = Company::create(['name' => $name]);
+            $company = Company::query()->create(['name' => $name]);
 
             $this->setupDefaultWallets->handle($company);
             $this->setupDefaultCategories->handle($company);

@@ -11,7 +11,7 @@ use App\Services\Reports\CashFlowReport;
 use App\Services\Reports\IncomeStatementReport;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,7 +40,7 @@ final class ReportController extends Controller
 
     public function monthlySummary(Request $request, Company $current_company, IncomeStatementReport $report): Response
     {
-        $months = collect(range(11, 0))->map(function (int $monthsAgo) use ($current_company, $report) {
+        $months = collect(range(11, 0))->map(function (int $monthsAgo) use ($current_company, $report): array {
             $month = now($current_company->timezone)->subMonthsNoOverflow($monthsAgo);
             $statement = $report->generate($current_company, $month->copy()->startOfMonth(), $month->copy()->endOfMonth());
 
@@ -76,7 +76,7 @@ final class ReportController extends Controller
     public function balanceSheet(Request $request, Company $current_company, BalanceSheetReport $report): Response
     {
         $asOf = $request->filled('as_of')
-            ? Carbon::parse($request->string('as_of')->toString())
+            ? Date::parse($request->string('as_of')->toString())
             : now($current_company->timezone);
 
         return Inertia::render('reports/balance-sheet', [
@@ -102,11 +102,11 @@ final class ReportController extends Controller
     private function period(Request $request, Company $company): array
     {
         $from = $request->filled('from')
-            ? Carbon::parse($request->string('from')->toString())
+            ? Date::parse($request->string('from')->toString())
             : now($company->timezone)->startOfMonth();
 
         $to = $request->filled('to')
-            ? Carbon::parse($request->string('to')->toString())
+            ? Date::parse($request->string('to')->toString())
             : now($company->timezone)->endOfMonth();
 
         return [$from, $to];

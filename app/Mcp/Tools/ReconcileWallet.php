@@ -6,6 +6,7 @@ namespace App\Mcp\Tools;
 
 use App\Actions\Wallets\ReconcileWallet as ReconcileWalletAction;
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Transaction;
 use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -52,7 +53,7 @@ final class ReconcileWallet extends Tool
             'via' => 'mcp',
         ]);
 
-        if ($transaction === null) {
+        if (! $transaction instanceof Transaction) {
             return Response::text(sprintf('Wallet "%s" already matches — nothing to adjust.', $wallet->name));
         }
 

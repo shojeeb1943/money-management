@@ -6,7 +6,7 @@ namespace App\Actions\Install;
 
 use App\Support\EnvWriter;
 
-final class WriteEnvironmentFile
+final readonly class WriteEnvironmentFile
 {
     public function __construct(private EnvWriter $envWriter) {}
 

@@ -35,7 +35,7 @@ final class ListRecurring extends Tool
             ->with(['wallet', 'counterWallet', 'category'])
             ->orderBy('name')
             ->get()
-            ->map(fn (RecurringTransaction $recurring) => [
+            ->map(fn (RecurringTransaction $recurring): array => [
                 'id' => $recurring->id,
                 'name' => $recurring->name,
                 'type' => $recurring->type->value,

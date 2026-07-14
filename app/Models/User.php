@@ -40,8 +40,15 @@ use Laravel\Passport\HasApiTokens;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 final class User extends Authenticatable implements OAuthenticatable, PasskeyUser
 {
+    use HasApiTokens;
+    use HasCompanies;
+
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasCompanies, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory;
+
+    use Notifiable;
+    use PasskeyAuthenticatable;
+    use TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.

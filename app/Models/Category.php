@@ -8,6 +8,7 @@ use App\Concerns\BelongsToCompany;
 use App\Enums\CategoryKind;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,8 +35,10 @@ use Illuminate\Support\Carbon;
 #[Fillable(['company_id', 'parent_id', 'kind', 'name', 'icon', 'color', 'archived_at'])]
 final class Category extends Model
 {
+    use BelongsToCompany;
+
     /** @use HasFactory<CategoryFactory> */
-    use BelongsToCompany, HasFactory;
+    use HasFactory;
 
     /**
      * @return BelongsTo<Category, $this>
@@ -51,15 +54,6 @@ final class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->whereNull($this->qualifyColumn('archived_at'));
     }
 
     public function isArchived(): bool
@@ -78,6 +72,16 @@ final class Category extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function active(Builder $query): Builder
+    {
+        return $query->whereNull($this->qualifyColumn('archived_at'));
     }
 
     /**

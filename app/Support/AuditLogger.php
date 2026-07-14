@@ -16,7 +16,7 @@ final class AuditLogger
      */
     public static function log(Company $company, ?User $user, string $action, Model $auditable, array $changes = []): void
     {
-        AuditLog::create([
+        AuditLog::query()->create([
             'company_id' => $company->id,
             'user_id' => $user?->id,
             'action' => $action,

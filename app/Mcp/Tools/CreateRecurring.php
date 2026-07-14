@@ -10,7 +10,7 @@ use App\Mcp\Concerns\InteractsWithCompany;
 use App\Models\RecurringTransaction;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -77,16 +77,16 @@ final class CreateRecurring extends Tool
             : null;
 
         $startsOn = $request->get('starts_on') !== null
-            ? Carbon::parse((string) $request->get('starts_on'))
-            : Carbon::parse(now($company->timezone)->toDateString());
+            ? Date::parse((string) $request->get('starts_on'))
+            : Date::parse(now($company->timezone)->toDateString());
 
-        if ($request->get('ends_on') !== null && Carbon::parse((string) $request->get('ends_on'))->lessThanOrEqualTo($startsOn)) {
+        if ($request->get('ends_on') !== null && Date::parse((string) $request->get('ends_on'))->lessThanOrEqualTo($startsOn)) {
             return Response::error('ends_on must be after starts_on.');
         }
 
         $frequency = RecurrenceFrequency::from((string) $request->get('frequency'));
 
-        $recurring = RecurringTransaction::create([
+        $recurring = RecurringTransaction::query()->create([
             'company_id' => $company->id,
             'name' => (string) $request->get('name'),
             'type' => $type,

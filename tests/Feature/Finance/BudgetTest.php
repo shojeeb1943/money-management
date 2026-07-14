@@ -15,65 +15,65 @@ use Inertia\Testing\AssertableInertia;
 function budgetSetup(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
     $marketing = $company->categories()->where('name', 'Marketing')->firstOrFail();
 
     return [$user, $company, $bank, $marketing];
 }
 
-test('crossing the alert threshold produces a warning and exceeding produces an error', function () {
+test('crossing the alert threshold produces a warning and exceeding produces an error', function (): void {
     [$user, $company, $bank, $marketing] = budgetSetup();
 
-    Budget::create([
+    Budget::query()->create([
         'company_id' => $company->id,
         'category_id' => $marketing->id,
         'amount' => 100_000,
         'alert_threshold' => 80,
     ]);
 
-    $evaluator = app(EvaluateBudgetAlert::class);
+    $evaluator = resolve(EvaluateBudgetAlert::class);
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 50_000, now(), $marketing);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 50_000, now(), $marketing);
     expect($evaluator->handle($company, $marketing, now()))->toBeNull();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 35_000, now(), $marketing);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 35_000, now(), $marketing);
     $warning = $evaluator->handle($company, $marketing, now());
     expect($warning)->not->toBeNull()
         ->and($warning['level'])->toBe('warning')
         ->and($warning['message'])->toContain('85%');
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 20_000, now(), $marketing);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 20_000, now(), $marketing);
     $exceeded = $evaluator->handle($company, $marketing, now());
     expect($exceeded['level'])->toBe('error')
         ->and($exceeded['message'])->toContain('exceeded');
 });
 
-test('child category spend counts toward the parent budget', function () {
+test('child category spend counts toward the parent budget', function (): void {
     [$user, $company, $bank, $marketing] = budgetSetup();
 
-    $childCategory = app(CreateCategory::class)->handle($company, 'Facebook Ads', CategoryKind::Expense, $marketing);
+    $childCategory = resolve(CreateCategory::class)->handle($company, 'Facebook Ads', CategoryKind::Expense, $marketing);
 
-    Budget::create([
+    Budget::query()->create([
         'company_id' => $company->id,
         'category_id' => $marketing->id,
         'amount' => 100_000,
         'alert_threshold' => 80,
     ]);
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 90_000, now(), $childCategory);
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 90_000, now(), $childCategory);
 
-    $alert = app(EvaluateBudgetAlert::class)->handle($company, $childCategory, now());
+    $alert = resolve(EvaluateBudgetAlert::class)->handle($company, $childCategory, now());
 
     expect($alert)->not->toBeNull()
         ->and($alert['level'])->toBe('warning')
         ->and($alert['message'])->toContain('Marketing');
 });
 
-test('a budget alert is flashed when recording an expense through the endpoint', function () {
+test('a budget alert is flashed when recording an expense through the endpoint', function (): void {
     [$user, $company, $bank, $marketing] = budgetSetup();
 
-    Budget::create([
+    Budget::query()->create([
         'company_id' => $company->id,
         'category_id' => $marketing->id,
         'amount' => 100_000,
@@ -91,7 +91,7 @@ test('a budget alert is flashed when recording an expense through the endpoint',
     expect($company->transactions()->count())->toBe(1);
 });
 
-test('budgets can be created and removed through the endpoints', function () {
+test('budgets can be created and removed through the endpoints', function (): void {
     [$user, $company, , $marketing] = budgetSetup();
 
     $this->actingAs($user)->post(route('budgets.store', ['current_company' => $company->slug]), [
@@ -123,10 +123,10 @@ test('budgets can be created and removed through the endpoints', function () {
     expect(Budget::query()->forCompany($company)->count())->toBe(0);
 });
 
-test('the dashboard shows budget progress', function () {
+test('the dashboard shows budget progress', function (): void {
     [$user, $company, $bank, $marketing] = budgetSetup();
 
-    Budget::create([
+    Budget::query()->create([
         'company_id' => $company->id,
         'category_id' => $marketing->id,
         'amount' => 100_000,
@@ -135,7 +135,7 @@ test('the dashboard shows budget progress', function () {
         'is_active' => true,
     ]);
 
-    app(CreateTransaction::class)->handle(
+    resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Expense, $bank, 45_000, now(), $marketing, creator: $user,
     );
 
@@ -143,7 +143,7 @@ test('the dashboard shows budget progress', function () {
 
     $this->actingAs($user)
         ->get(route('dashboard', ['current_company' => $company->slug]))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('dashboard')
             ->has('budgets', 1)
             ->where('budgets.0.categoryName', 'Marketing')

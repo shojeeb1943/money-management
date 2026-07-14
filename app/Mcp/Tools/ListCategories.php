@@ -40,7 +40,7 @@ final class ListCategories extends Tool
             ->orderBy('kind')
             ->orderBy('name')
             ->get()
-            ->map(fn (Category $category) => [
+            ->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'kind' => $category->kind->value,

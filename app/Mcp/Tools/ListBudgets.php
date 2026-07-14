@@ -37,7 +37,7 @@ final class ListBudgets extends Tool
             ->forCompany($company)
             ->with('category')
             ->get()
-            ->map(function (Budget $budget) use ($company) {
+            ->map(function (Budget $budget) use ($company): array {
                 $spent = $this->evaluator->periodSpend($company, $budget->category, now($company->timezone), $budget->period);
 
                 return [

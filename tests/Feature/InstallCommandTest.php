@@ -5,13 +5,13 @@ declare(strict_types=1);
 use App\Models\Company;
 use App\Models\User;
 
-test('moneta:install with no options uses the default credentials', function () {
+test('moneta:install with no options uses the default credentials', function (): void {
     $this->artisan('moneta:install')->assertSuccessful();
 
-    $user = User::where('email', 'admin@admin.com')->firstOrFail();
+    $user = User::query()->where('email', 'admin@admin.com')->firstOrFail();
 
     expect($user->name)->toBe('Admin')
-        ->and(Company::where('name', 'Demo Company')->exists())->toBeTrue();
+        ->and(Company::query()->where('name', 'Demo Company')->exists())->toBeTrue();
 
     $this->post(route('login.store'), [
         'email' => 'admin@admin.com',
@@ -20,7 +20,7 @@ test('moneta:install with no options uses the default credentials', function () 
     $this->assertAuthenticated();
 });
 
-test('moneta:install creates the admin account and company', function () {
+test('moneta:install creates the admin account and company', function (): void {
     $this->artisan('moneta:install', [
         '--name' => 'Admin',
         '--email' => 'admin@example.com',
@@ -28,8 +28,8 @@ test('moneta:install creates the admin account and company', function () {
         '--company' => 'Acme Studio',
     ])->assertSuccessful();
 
-    $user = User::where('email', 'admin@example.com')->firstOrFail();
-    $company = Company::where('name', 'Acme Studio')->firstOrFail();
+    $user = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
 
     expect($user->currentCompany->is($company))->toBeTrue()
         ->and($company->wallets()->count())->toBeGreaterThan(0);
@@ -41,7 +41,7 @@ test('moneta:install creates the admin account and company', function () {
     $this->assertAuthenticated();
 });
 
-test('moneta:install refuses to run twice', function () {
+test('moneta:install refuses to run twice', function (): void {
     User::factory()->create();
 
     $this->artisan('moneta:install', [
@@ -51,10 +51,10 @@ test('moneta:install refuses to run twice', function () {
         '--company' => 'Acme',
     ])->assertFailed();
 
-    expect(User::count())->toBe(1);
+    expect(User::query()->count())->toBe(1);
 });
 
-test('moneta:install validates input', function () {
+test('moneta:install validates input', function (): void {
     $this->artisan('moneta:install', [
         '--name' => 'Admin',
         '--email' => 'not-an-email',
@@ -62,10 +62,10 @@ test('moneta:install validates input', function () {
         '--company' => 'Acme',
     ])->assertFailed();
 
-    expect(User::count())->toBe(0);
+    expect(User::query()->count())->toBe(0);
 });
 
-test('there are no registration routes', function () {
+test('there are no registration routes', function (): void {
     $this->get('/register')->assertNotFound();
     $this->post('/register')->assertNotFound();
 });

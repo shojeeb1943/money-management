@@ -32,7 +32,7 @@ final class SetCurrentCompany
         $company = $request->route('current_company') ?? $request->route('company');
 
         if (is_string($company)) {
-            $company = Company::where('slug', $company)->first();
+            return Company::query()->where('slug', $company)->first();
         }
 
         return $company;

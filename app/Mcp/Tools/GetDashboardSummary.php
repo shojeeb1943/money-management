@@ -10,7 +10,7 @@ use App\Services\Reports\IncomeStatementReport;
 use App\Support\Money;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -67,11 +67,11 @@ final class GetDashboardSummary extends Tool
     private function period(Request $request, string $timezone): array
     {
         $from = $request->get('from') !== null
-            ? Carbon::parse((string) $request->get('from'))
+            ? Date::parse((string) $request->get('from'))
             : now($timezone)->startOfMonth();
 
         $to = $request->get('to') !== null
-            ? Carbon::parse((string) $request->get('to'))
+            ? Date::parse((string) $request->get('to'))
             : now($timezone)->endOfMonth();
 
         return [$from, $to];

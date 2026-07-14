@@ -12,10 +12,10 @@ use App\Models\User;
 
 function financeCompany(User $user): Company
 {
-    return app(CreateCompany::class)->handle($user, 'Acme Studio');
+    return resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 }
 
-test('a new company gets default BD wallets and categories', function () {
+test('a new company gets default BD wallets and categories', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
@@ -24,28 +24,28 @@ test('a new company gets default BD wallets and categories', function () {
         ->and($company->categories()->where('kind', 'expense')->count())->toBeGreaterThanOrEqual(3);
 });
 
-test('creating a wallet with a positive opening balance caches the balance', function () {
+test('creating a wallet with a positive opening balance caches the balance', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = app(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
+    $wallet = resolve(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
 
     expect($wallet->opening_balance)->toBe(500_000)
         ->and($wallet->cached_balance)->toBe(500_000)
         ->and($wallet->derivedBalance())->toBe(500_000);
 });
 
-test('creating a wallet with a negative opening balance works for credit accounts', function () {
+test('creating a wallet with a negative opening balance works for credit accounts', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = app(CreateWallet::class)->handle($company, 'Credit Card', WalletType::Card, openingBalance: -120_000);
+    $wallet = resolve(CreateWallet::class)->handle($company, 'Credit Card', WalletType::Card, openingBalance: -120_000);
 
     expect($wallet->cached_balance)->toBe(-120_000)
         ->and($wallet->derivedBalance())->toBe(-120_000);
 });
 
-test('a wallet can be created through the endpoint with a decimal opening balance', function () {
+test('a wallet can be created through the endpoint with a decimal opening balance', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
@@ -62,12 +62,12 @@ test('a wallet can be created through the endpoint with a decimal opening balanc
     expect($wallet->cached_balance)->toBe(150_050);
 });
 
-test('a wallet from another company returns 404 via scoped bindings', function () {
+test('a wallet from another company returns 404 via scoped bindings', function (): void {
     $owner = User::factory()->create();
     $company = financeCompany($owner);
 
     $otherOwner = User::factory()->create();
-    $otherCompany = app(CreateCompany::class)->handle($otherOwner, 'Other Business');
+    $otherCompany = resolve(CreateCompany::class)->handle($otherOwner, 'Other Business');
     $foreignWallet = $otherCompany->wallets()->firstOrFail();
 
     $this->actingAs($owner)
@@ -75,7 +75,7 @@ test('a wallet from another company returns 404 via scoped bindings', function (
         ->assertNotFound();
 });
 
-test('archiving a wallet toggles archived state', function () {
+test('archiving a wallet toggles archived state', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
     $wallet = $company->wallets()->firstOrFail();
@@ -93,13 +93,13 @@ test('archiving a wallet toggles archived state', function () {
     expect($wallet->refresh()->isArchived())->toBeFalse();
 });
 
-test('editing the opening balance shifts the cached balance by the difference', function () {
+test('editing the opening balance shifts the cached balance by the difference', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = app(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
+    $wallet = resolve(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
 
-    app(CreateTransaction::class)->handle(
+    resolve(CreateTransaction::class)->handle(
         $company,
         TransactionType::Income,
         $wallet,

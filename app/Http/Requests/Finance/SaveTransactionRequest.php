@@ -19,11 +19,7 @@ final class SaveTransactionRequest extends FormRequest
     {
         $type = TransactionType::tryFrom((string) $this->input('type'));
 
-        if ($type === null) {
-            return false;
-        }
-
-        return true;
+        return $type !== null;
     }
 
     /**

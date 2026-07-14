@@ -69,7 +69,7 @@ final class ListTransactions extends Tool
             'page' => $transactions->currentPage(),
             'lastPage' => $transactions->lastPage(),
             'total' => $transactions->total(),
-            'transactions' => collect($transactions->items())->map(fn (Transaction $transaction) => [
+            'transactions' => collect($transactions->items())->map(fn (Transaction $transaction): array => [
                 'id' => $transaction->id,
                 'type' => $transaction->type->value,
                 'date' => $transaction->date->toDateString(),

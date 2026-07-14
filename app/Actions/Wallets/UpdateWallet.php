@@ -20,7 +20,7 @@ final class UpdateWallet
         ?int $openingBalance = null,
     ): Wallet {
         return DB::transaction(function () use ($wallet, $name, $type, $accountNumber, $icon, $color, $openingBalance) {
-            $wallet = Wallet::whereKey($wallet->id)->lockForUpdate()->firstOrFail();
+            $wallet = Wallet::query()->whereKey($wallet->id)->lockForUpdate()->firstOrFail();
 
             $attributes = [
                 'name' => $name,

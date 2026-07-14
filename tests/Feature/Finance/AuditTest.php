@@ -9,12 +9,12 @@ use App\Models\User;
 function auditSetup(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 
     return [$user, $company];
 }
 
-test('an audit trail is written for the transaction lifecycle', function () {
+test('an audit trail is written for the transaction lifecycle', function (): void {
     [$user, $company] = auditSetup();
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
     $commission = $company->categories()->where('name', 'Sales')->firstOrFail();

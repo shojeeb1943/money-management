@@ -26,8 +26,12 @@ use Illuminate\Support\Carbon;
 #[Fillable(['name', 'slug', 'timezone', 'currency'])]
 final class Company extends Model
 {
+    use GeneratesUniqueCompanySlugs;
+
     /** @use HasFactory<CompanyFactory> */
-    use GeneratesUniqueCompanySlugs, HasFactory, SoftDeletes;
+    use HasFactory;
+
+    use SoftDeletes;
 
     /**
      * @var array<string, mixed>
@@ -92,15 +96,15 @@ final class Company extends Model
     {
         parent::boot();
 
-        self::creating(function (Company $company) {
+        self::creating(function (Company $company): void {
             if (empty($company->slug)) {
-                $company->slug = static::generateUniqueCompanySlug($company->name);
+                $company->slug = self::generateUniqueCompanySlug($company->name);
             }
         });
 
-        self::updating(function (Company $company) {
+        self::updating(function (Company $company): void {
             if ($company->isDirty('name')) {
-                $company->slug = static::generateUniqueCompanySlug($company->name, $company->id);
+                $company->slug = self::generateUniqueCompanySlug($company->name, $company->id);
             }
         });
     }

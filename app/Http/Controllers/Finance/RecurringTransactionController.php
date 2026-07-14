@@ -12,7 +12,7 @@ use App\Models\Company;
 use App\Models\RecurringTransaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +26,7 @@ final class RecurringTransactionController extends Controller
                 ->with(['wallet', 'counterWallet', 'category'])
                 ->orderBy('next_run_on')
                 ->get()
-                ->map(fn (RecurringTransaction $recurring) => [
+                ->map(fn (RecurringTransaction $recurring): array => [
                     'id' => $recurring->id,
                     'name' => $recurring->name,
                     'type' => $recurring->type->value,
@@ -49,9 +49,9 @@ final class RecurringTransactionController extends Controller
                     'active' => $recurring->is_active,
                 ]),
             'wallets' => $current_company->wallets()->active()->orderBy('name')->get(['id', 'name'])
-                ->map(fn ($wallet) => ['id' => $wallet->id, 'name' => $wallet->name]),
+                ->map(fn ($wallet): array => ['id' => $wallet->id, 'name' => $wallet->name]),
             'categories' => $current_company->categories()->active()->orderBy('name')->get()
-                ->map(fn ($category) => [
+                ->map(fn ($category): array => [
                     'id' => $category->id,
                     'name' => $category->name,
                     'kind' => $category->kind->value,
@@ -63,9 +63,9 @@ final class RecurringTransactionController extends Controller
 
     public function store(SaveRecurringTransactionRequest $request, Company $current_company): RedirectResponse
     {
-        $startsOn = Carbon::parse($request->validated('starts_on'));
+        $startsOn = Date::parse($request->validated('starts_on'));
 
-        RecurringTransaction::create([
+        RecurringTransaction::query()->create([
             'company_id' => $current_company->id,
             'name' => $request->validated('name'),
             'type' => TransactionType::from($request->validated('type')),

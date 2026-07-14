@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 return [
 
-    'installed' => env('MONETA_INSTALLED'),
-
-    'flag_path' => env('MONETA_INSTALLED_FLAG'),
-
     'php_version' => '8.3.0',
 
     'extensions' => [

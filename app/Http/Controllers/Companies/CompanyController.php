@@ -59,7 +59,7 @@ final class CompanyController extends Controller
                 'currency' => $company->currency,
             ],
             'timezones' => DateTimeZone::listIdentifiers(),
-            'currencies' => collect(Money::CURRENCIES)->map(fn (string $symbol, string $code) => [
+            'currencies' => collect(Money::CURRENCIES)->map(fn (string $symbol, string $code): array => [
                 'code' => $code,
                 'symbol' => trim($symbol),
             ])->values(),
@@ -73,7 +73,7 @@ final class CompanyController extends Controller
     public function update(SaveCompanyRequest $request, Company $company): RedirectResponse
     {
         $company = DB::transaction(function () use ($request, $company) {
-            $company = Company::whereKey($company->id)->lockForUpdate()->firstOrFail();
+            $company = Company::query()->whereKey($company->id)->lockForUpdate()->firstOrFail();
 
             $company->update(['name' => $request->validated('name')]);
 
@@ -122,7 +122,7 @@ final class CompanyController extends Controller
             ? $user->fallbackCompany($company)
             : null;
 
-        DB::transaction(function () use ($company) {
+        DB::transaction(function () use ($company): void {
             $company->delete();
         });
 

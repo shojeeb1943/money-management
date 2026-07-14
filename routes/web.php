@@ -13,23 +13,24 @@ use App\Http\Controllers\Finance\TransactionController;
 use App\Http\Controllers\Finance\TransferController;
 use App\Http\Controllers\Finance\WalletController;
 use App\Http\Middleware\SetCurrentCompany;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect(auth()->check() ? '/dashboard' : '/login'))->name('home');
+Route::get('/', fn (): RedirectResponse => redirect(auth()->check() ? '/dashboard' : '/login'))->name('home');
 
 Route::get('dashboard', function (Request $request) {
     $company = $request->user()->currentCompany ?? $request->user()->fallbackCompany();
 
     abort_unless($company !== null, 404);
 
-    return redirect()->route('dashboard', $company->slug);
+    return to_route('dashboard', $company->slug);
 })->middleware(['auth'])->name('dashboard.home');
 
 Route::prefix('{current_company}')
     ->middleware(['auth', SetCurrentCompany::class])
     ->scopeBindings()
-    ->group(function () {
+    ->group(function (): void {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::get('wallets', [WalletController::class, 'index'])->name('wallets.index');

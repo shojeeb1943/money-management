@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 
-beforeEach(function () {
-    $this->flag = sys_get_temp_dir().'/moneta-installed-'.uniqid();
-    config(['installer.installed' => null, 'installer.flag_path' => $this->flag]);
+beforeEach(function (): void {
+    $this->flag = storage_path('installed');
+    @unlink($this->flag);
 
     $this->envDir = sys_get_temp_dir().'/moneta-env-'.uniqid();
     File::ensureDirectoryExists($this->envDir);
@@ -16,12 +16,12 @@ beforeEach(function () {
     config(['database.connections.sqlite.database' => ':memory:']);
 });
 
-afterEach(function () {
-    @unlink($this->flag);
+afterEach(function (): void {
+    touch($this->flag);
     File::deleteDirectory($this->envDir);
 });
 
-test('a working sqlite connection writes the environment file', function () {
+test('a working sqlite connection writes the environment file', function (): void {
     $this->post(route('install.database.store'), ['connection' => 'sqlite'])
         ->assertRedirect(route('install.migrations'));
 
@@ -33,7 +33,7 @@ test('a working sqlite connection writes the environment file', function () {
         ->toContain("APP_DEBUG=false\n");
 });
 
-test('an unreachable database returns a connection error', function () {
+test('an unreachable database returns a connection error', function (): void {
     $this->from(route('install.database'))
         ->post(route('install.database.store'), [
             'connection' => 'mysql',
@@ -49,17 +49,17 @@ test('an unreachable database returns a connection error', function () {
     expect(file_get_contents($this->envDir.'/.env'))->not->toContain('DB_CONNECTION=mysql');
 });
 
-test('server connections require host, port, database and username', function () {
+test('server connections require host, port, database and username', function (): void {
     $this->post(route('install.database.store'), ['connection' => 'mysql'])
         ->assertSessionHasErrors(['host', 'port', 'database', 'username']);
 });
 
-test('the connection must be a supported driver', function () {
+test('the connection must be a supported driver', function (): void {
     $this->post(route('install.database.store'), ['connection' => 'mongodb'])
         ->assertSessionHasErrors('connection');
 });
 
-test('a working connection writes server credentials to the environment file', function () {
+test('a working connection writes server credentials to the environment file', function (): void {
     $database = $this->envDir.'/connection-test.sqlite';
     touch($database);
 
@@ -83,7 +83,7 @@ test('a working connection writes server credentials to the environment file', f
         ->toContain("DB_CONNECTION=mysql\n")
         ->toContain("DB_HOST=db.example.com\n")
         ->toContain("DB_PORT=3306\n")
-        ->toContain("DB_DATABASE={$database}\n")
+        ->toContain(sprintf('DB_DATABASE=%s%s', $database, PHP_EOL))
         ->toContain("DB_USERNAME=moneta_user\n")
         ->toContain("DB_PASSWORD='secret pass'")
         ->not->toContain('# DB_HOST');

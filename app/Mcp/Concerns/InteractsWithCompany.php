@@ -41,7 +41,7 @@ trait InteractsWithCompany
 
         if (! $wallet instanceof Wallet) {
             throw ValidationException::withMessages([
-                'wallet' => "Wallet \"{$identifier}\" not found. Use the list-wallets tool to see available wallets.",
+                'wallet' => sprintf('Wallet "%s" not found. Use the list-wallets tool to see available wallets.', $identifier),
             ]);
         }
 
@@ -50,7 +50,7 @@ trait InteractsWithCompany
 
     protected function category(Company $company, string|int $identifier, ?CategoryKind $kind = null): Category
     {
-        $query = $company->categories()->when($kind !== null, fn ($inner) => $inner->where('kind', $kind));
+        $query = $company->categories()->when($kind instanceof CategoryKind, fn ($inner) => $inner->where('kind', $kind));
 
         $category = is_numeric($identifier)
             ? (clone $query)->whereKey((int) $identifier)->first()
@@ -61,7 +61,7 @@ trait InteractsWithCompany
             $kindLabel = $kind->value ?? 'any';
 
             throw ValidationException::withMessages([
-                'category' => "Category \"{$identifier}\" (kind: {$kindLabel}) not found. Use the list-categories tool to see available categories.",
+                'category' => sprintf('Category "%s" (kind: %s) not found. Use the list-categories tool to see available categories.', $identifier, $kindLabel),
             ]);
         }
 

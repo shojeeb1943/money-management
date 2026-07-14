@@ -25,6 +25,6 @@ final class CategoryFactory extends Factory
 
     public function kind(CategoryKind $kind): static
     {
-        return $this->state(fn () => ['kind' => $kind]);
+        return $this->state(fn (): array => ['kind' => $kind]);
     }
 }

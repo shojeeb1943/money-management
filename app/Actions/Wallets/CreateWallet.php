@@ -22,7 +22,7 @@ final class CreateWallet
         ?User $creator = null,
         ?string $currency = null,
     ): Wallet {
-        return Wallet::create([
+        return Wallet::query()->create([
             'company_id' => $company->id,
             'name' => $name,
             'type' => $type,

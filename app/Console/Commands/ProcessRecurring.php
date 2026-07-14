@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\Recurring\ProcessRecurringTransactions;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
+#[Description('Create transactions for all recurring schedules that are due')]
+#[Signature('moneta:process-recurring')]
 final class ProcessRecurring extends Command
 {
-    protected $signature = 'moneta:process-recurring';
-
-    protected $description = 'Create transactions for all recurring schedules that are due';
-
     public function handle(ProcessRecurringTransactions $processor): int
     {
         $count = $processor->handle();
 
-        $this->info("Processed {$count} recurring transaction(s).");
+        $this->info(sprintf('Processed %d recurring transaction(s).', $count));
 
         return self::SUCCESS;
     }

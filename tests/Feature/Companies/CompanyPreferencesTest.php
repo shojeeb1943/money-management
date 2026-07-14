@@ -10,17 +10,17 @@ use App\Enums\WalletType;
 use App\Models\User;
 use App\Services\Reports\IncomeStatementReport;
 
-test('a new company defaults to Asia/Dhaka and BDT', function () {
+test('a new company defaults to Asia/Dhaka and BDT', function (): void {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 
     expect($company->timezone)->toBe('Asia/Dhaka')
         ->and($company->currency)->toBe('BDT');
 });
 
-test('an owner can update the company preferences', function () {
+test('an owner can update the company preferences', function (): void {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 
     $this->actingAs($user)
         ->patch(route('companies.preferences.update', ['company' => $company->slug]), ['timezone' => 'Asia/Dubai', 'currency' => 'USD'])
@@ -30,9 +30,9 @@ test('an owner can update the company preferences', function () {
         ->and($company->currency)->toBe('USD');
 });
 
-test('an invalid timezone or currency is rejected', function () {
+test('an invalid timezone or currency is rejected', function (): void {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 
     $this->actingAs($user)
         ->from(route('companies.edit', ['company' => $company->slug]))
@@ -42,23 +42,23 @@ test('an invalid timezone or currency is rejected', function () {
     expect($company->refresh()->timezone)->toBe('Asia/Dhaka');
 });
 
-test('reports follow the company currency', function () {
+test('reports follow the company currency', function (): void {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
     $user->switchCompany($company);
 
     $company->update(['currency' => 'USD']);
 
-    $wallet = app(CreateWallet::class)->handle($company, 'US Bank', WalletType::Bank, creator: $user);
+    $wallet = resolve(CreateWallet::class)->handle($company, 'US Bank', WalletType::Bank, creator: $user);
     $income = $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
 
     expect($wallet->currency)->toBe('USD');
 
-    app(CreateTransaction::class)->handle(
+    resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $wallet, 100_000, now(), $income, creator: $user,
     );
 
-    $report = app(IncomeStatementReport::class)->generate($company, now()->startOfMonth(), now()->endOfMonth());
+    $report = resolve(IncomeStatementReport::class)->generate($company, now()->startOfMonth(), now()->endOfMonth());
 
     expect($report['totalIncome'])->toBe(100_000);
 });

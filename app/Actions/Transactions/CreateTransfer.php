@@ -14,7 +14,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class CreateTransfer
+final readonly class CreateTransfer
 {
     public function __construct(private ApplyTransactionBalance $applyBalance) {}
 
@@ -28,24 +28,16 @@ final class CreateTransfer
         ?string $reference = null,
         ?User $creator = null,
     ): Transaction {
-        if ($amount < 1) {
-            throw new InvalidArgumentException('Amount must be positive.');
-        }
+        throw_if($amount < 1, InvalidArgumentException::class, 'Amount must be positive.');
 
-        if ($from->id === $to->id) {
-            throw new InvalidArgumentException('Cannot transfer to the same wallet.');
-        }
+        throw_if($from->id === $to->id, InvalidArgumentException::class, 'Cannot transfer to the same wallet.');
 
-        if ($from->company_id !== $company->id || $to->company_id !== $company->id) {
-            throw new InvalidArgumentException('Both wallets must belong to the company.');
-        }
+        throw_if($from->company_id !== $company->id || $to->company_id !== $company->id, InvalidArgumentException::class, 'Both wallets must belong to the company.');
 
-        if ($from->currency !== $to->currency) {
-            throw new InvalidArgumentException('Transfers between different currencies are not supported yet.');
-        }
+        throw_if($from->currency !== $to->currency, InvalidArgumentException::class, 'Transfers between different currencies are not supported yet.');
 
         return DB::transaction(function () use ($company, $from, $to, $amount, $date, $description, $reference, $creator) {
-            $transaction = Transaction::create([
+            $transaction = Transaction::query()->create([
                 'company_id' => $company->id,
                 'type' => TransactionType::Transfer,
                 'wallet_id' => $from->id,

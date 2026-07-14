@@ -22,7 +22,7 @@ trait BelongsToCompany
      * @param  Builder<static>  $query
      * @return Builder<static>
      */
-    public function scopeForCompany(Builder $query, Company $company): Builder
+    protected function scopeForCompany(Builder $query, Company $company): Builder
     {
         return $query->where($this->qualifyColumn('company_id'), $company->id);
     }

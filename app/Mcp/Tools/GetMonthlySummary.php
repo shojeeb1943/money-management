@@ -32,7 +32,7 @@ final class GetMonthlySummary extends Tool
     {
         $company = $this->company($request);
 
-        $months = collect(range(11, 0))->map(function (int $monthsAgo) use ($company) {
+        $months = collect(range(11, 0))->map(function (int $monthsAgo) use ($company): array {
             $month = now($company->timezone)->subMonthsNoOverflow($monthsAgo);
             $statement = $this->report->generate($company, $month->copy()->startOfMonth(), $month->copy()->endOfMonth());
 

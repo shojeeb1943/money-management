@@ -8,7 +8,7 @@ use App\Models\RecurringTransaction;
 use App\Models\User;
 use Database\Seeders\DemoSeeder;
 
-test('the demo seeder produces a fully reconciled set of books', function () {
+test('the demo seeder produces a fully reconciled set of books', function (): void {
     $this->seed(DemoSeeder::class);
 
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
@@ -21,10 +21,10 @@ test('the demo seeder produces a fully reconciled set of books', function () {
     $this->artisan('moneta:verify-balances')->assertSuccessful();
 });
 
-test('every finance page renders for the demo owner', function () {
+test('every finance page renders for the demo owner', function (): void {
     $this->seed(DemoSeeder::class);
 
-    $owner = User::where('email', 'demo@example.com')->firstOrFail();
+    $owner = User::query()->where('email', 'demo@example.com')->firstOrFail();
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
     $slug = ['current_company' => $company->slug];
     $wallet = $company->wallets()->firstOrFail();

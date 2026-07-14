@@ -19,11 +19,11 @@ final class CreateCategory
         ?string $icon = null,
         ?string $color = null,
     ): Category {
-        if ($parent !== null) {
+        if ($parent instanceof Category) {
             $this->assertValidParent($company, $parent, $kind);
         }
 
-        return Category::create([
+        return Category::query()->create([
             'company_id' => $company->id,
             'parent_id' => $parent?->id,
             'kind' => $kind,
@@ -35,16 +35,10 @@ final class CreateCategory
 
     private function assertValidParent(Company $company, Category $parent, CategoryKind $kind): void
     {
-        if ($parent->company_id !== $company->id) {
-            throw new InvalidArgumentException('Parent category belongs to another company.');
-        }
+        throw_if($parent->company_id !== $company->id, InvalidArgumentException::class, 'Parent category belongs to another company.');
 
-        if ($parent->kind !== $kind) {
-            throw new InvalidArgumentException('Parent category kind does not match.');
-        }
+        throw_if($parent->kind !== $kind, InvalidArgumentException::class, 'Parent category kind does not match.');
 
-        if ($parent->parent_id !== null) {
-            throw new InvalidArgumentException('Categories can only be nested one level deep.');
-        }
+        throw_if($parent->parent_id !== null, InvalidArgumentException::class, 'Categories can only be nested one level deep.');
     }
 }

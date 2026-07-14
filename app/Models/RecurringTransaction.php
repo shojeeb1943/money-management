@@ -43,8 +43,10 @@ use Illuminate\Support\Carbon;
 #[Fillable(['company_id', 'name', 'type', 'wallet_id', 'counter_wallet_id', 'category_id', 'amount', 'currency', 'description', 'frequency', 'interval', 'day_of_month', 'starts_on', 'ends_on', 'next_run_on', 'last_run_on', 'is_active'])]
 final class RecurringTransaction extends Model
 {
+    use BelongsToCompany;
+
     /** @use HasFactory<RecurringTransactionFactory> */
-    use BelongsToCompany, HasFactory;
+    use HasFactory;
 
     /**
      * @return BelongsTo<Wallet, $this>

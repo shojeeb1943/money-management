@@ -7,7 +7,7 @@ namespace App\Actions\Wallets;
 use App\Enums\WalletType;
 use App\Models\Company;
 
-final class SetupDefaultWallets
+final readonly class SetupDefaultWallets
 {
     private const array DEFAULTS = [
         ['Bank', WalletType::Bank, 'landmark', '#2563eb'],

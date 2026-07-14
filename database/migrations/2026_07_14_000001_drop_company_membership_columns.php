@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::dropIfExists('company_members');
 
         if (Schema::hasColumn('companies', 'is_personal')) {
-            Schema::table('companies', function (Blueprint $table) {
+            Schema::table('companies', function (Blueprint $table): void {
                 $table->dropColumn('is_personal');
             });
         }

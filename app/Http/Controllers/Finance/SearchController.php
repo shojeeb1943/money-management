@@ -30,12 +30,12 @@ final class SearchController extends Controller
             'transactions' => $current_company->transactions()
                 ->with(['wallet', 'category'])
                 ->where(fn ($inner) => $inner
-                    ->where('description', 'like', "%{$query}%")
-                    ->orWhere('reference', 'like', "%{$query}%"))
+                    ->where('description', 'like', sprintf('%%%s%%', $query))
+                    ->orWhere('reference', 'like', sprintf('%%%s%%', $query)))
                 ->orderByDesc('date')
                 ->limit(8)
                 ->get()
-                ->map(fn (Transaction $transaction) => [
+                ->map(fn (Transaction $transaction): array => [
                     'id' => $transaction->id,
                     'description' => $transaction->description ?? $transaction->type->label(),
                     'walletName' => $transaction->wallet->name,
@@ -46,11 +46,11 @@ final class SearchController extends Controller
                     'voided' => ! $transaction->isPosted(),
                 ]),
             'wallets' => $current_company->wallets()
-                ->where('name', 'like', "%{$query}%")
+                ->where('name', 'like', sprintf('%%%s%%', $query))
                 ->orderBy('name')
                 ->limit(5)
                 ->get()
-                ->map(fn (Wallet $wallet) => [
+                ->map(fn (Wallet $wallet): array => [
                     'id' => $wallet->id,
                     'name' => $wallet->name,
                     'typeLabel' => $wallet->type->label(),
@@ -58,11 +58,11 @@ final class SearchController extends Controller
                     'currency' => $wallet->currency,
                 ]),
             'categories' => $current_company->categories()
-                ->where('name', 'like', "%{$query}%")
+                ->where('name', 'like', sprintf('%%%s%%', $query))
                 ->orderBy('name')
                 ->limit(5)
                 ->get()
-                ->map(fn (Category $category) => [
+                ->map(fn (Category $category): array => [
                     'id' => $category->id,
                     'name' => $category->name,
                     'kindLabel' => $category->kind->label(),

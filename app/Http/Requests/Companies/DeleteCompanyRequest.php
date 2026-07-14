@@ -7,9 +7,9 @@ namespace App\Http\Requests\Companies;
 use App\Models\Company;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Validator;
 
 final class DeleteCompanyRequest extends FormRequest
 {
@@ -36,7 +36,7 @@ final class DeleteCompanyRequest extends FormRequest
     /**
      * Configure the validator instance.
      *
-     * @return array<int, Closure(Validator): void>
+     * @return array<int, Closure(Validator):void>
      */
     public function after(): array
     {

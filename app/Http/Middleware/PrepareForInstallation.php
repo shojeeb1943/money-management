@@ -11,7 +11,7 @@ use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class PrepareForInstallation
+final readonly class PrepareForInstallation
 {
     public function __construct(
         private InstallationState $state,

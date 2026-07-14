@@ -12,17 +12,17 @@ use App\Models\User;
 function recurringSetup(): array
 {
     $user = User::factory()->create();
-    $company = app(CreateCompany::class)->handle($user, 'Acme Studio');
+    $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
     $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
     $rentCategory = $company->categories()->where('name', 'Office Rent')->firstOrFail();
 
     return [$user, $company, $bank, $rentCategory];
 }
 
-test('a due recurring transaction creates a transaction and advances the schedule', function () {
+test('a due recurring transaction creates a transaction and advances the schedule', function (): void {
     [$user, $company, $bank, $rent] = recurringSetup();
 
-    $recurring = RecurringTransaction::create([
+    $recurring = RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Office rent',
         'type' => TransactionType::Expense,
@@ -37,7 +37,7 @@ test('a due recurring transaction creates a transaction and advances the schedul
         'is_active' => true,
     ]);
 
-    $processed = app(ProcessRecurringTransactions::class)->handle();
+    $processed = resolve(ProcessRecurringTransactions::class)->handle();
 
     expect($processed)->toBe(1)
         ->and($company->transactions()->count())->toBe(1)
@@ -48,10 +48,10 @@ test('a due recurring transaction creates a transaction and advances the schedul
     $this->artisan('moneta:verify-balances')->assertSuccessful();
 });
 
-test('running the processor twice on the same day is idempotent', function () {
+test('running the processor twice on the same day is idempotent', function (): void {
     [$user, $company, $bank, $rent] = recurringSetup();
 
-    RecurringTransaction::create([
+    RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Office rent',
         'type' => TransactionType::Expense,
@@ -65,16 +65,16 @@ test('running the processor twice on the same day is idempotent', function () {
         'is_active' => true,
     ]);
 
-    app(ProcessRecurringTransactions::class)->handle();
-    app(ProcessRecurringTransactions::class)->handle();
+    resolve(ProcessRecurringTransactions::class)->handle();
+    resolve(ProcessRecurringTransactions::class)->handle();
 
     expect($company->transactions()->count())->toBe(1);
 });
 
-test('the processor catches up missed periods', function () {
+test('the processor catches up missed periods', function (): void {
     [$user, $company, $bank, $rent] = recurringSetup();
 
-    RecurringTransaction::create([
+    RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Weekly backup fee',
         'type' => TransactionType::Expense,
@@ -88,15 +88,15 @@ test('the processor catches up missed periods', function () {
         'is_active' => true,
     ]);
 
-    app(ProcessRecurringTransactions::class)->handle();
+    resolve(ProcessRecurringTransactions::class)->handle();
 
     expect($company->transactions()->count())->toBe(4);
 });
 
-test('an inactive schedule and one past its end date are skipped', function () {
+test('an inactive schedule and one past its end date are skipped', function (): void {
     [$user, $company, $bank, $rent] = recurringSetup();
 
-    RecurringTransaction::create([
+    RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Paused',
         'type' => TransactionType::Expense,
@@ -110,7 +110,7 @@ test('an inactive schedule and one past its end date are skipped', function () {
         'is_active' => false,
     ]);
 
-    $ended = RecurringTransaction::create([
+    $ended = RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Ended',
         'type' => TransactionType::Expense,
@@ -125,17 +125,17 @@ test('an inactive schedule and one past its end date are skipped', function () {
         'is_active' => true,
     ]);
 
-    app(ProcessRecurringTransactions::class)->handle();
+    resolve(ProcessRecurringTransactions::class)->handle();
 
     expect($company->transactions()->count())->toBe(0)
         ->and($ended->refresh()->is_active)->toBeFalse();
 });
 
-test('a recurring transfer moves money between wallets', function () {
+test('a recurring transfer moves money between wallets', function (): void {
     [$user, $company, $bank] = recurringSetup();
     $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
 
-    RecurringTransaction::create([
+    RecurringTransaction::query()->create([
         'company_id' => $company->id,
         'name' => 'Weekly cash top-up',
         'type' => TransactionType::Transfer,
@@ -149,7 +149,7 @@ test('a recurring transfer moves money between wallets', function () {
         'is_active' => true,
     ]);
 
-    app(ProcessRecurringTransactions::class)->handle();
+    resolve(ProcessRecurringTransactions::class)->handle();
 
     expect($bank->refresh()->cached_balance)->toBe(-100_000)
         ->and($cash->refresh()->cached_balance)->toBe(100_000);

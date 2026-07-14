@@ -9,7 +9,7 @@ use App\Mcp\Concerns\InteractsWithCompany;
 use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -51,8 +51,8 @@ final class RecordTransfer extends Tool
         $to = $this->wallet($company, $request->get('to_wallet'));
 
         $date = $request->get('date') !== null
-            ? Carbon::parse((string) $request->get('date'))
-            : Carbon::parse(now($company->timezone)->toDateString());
+            ? Date::parse((string) $request->get('date'))
+            : Date::parse(now($company->timezone)->toDateString());
 
         try {
             $transaction = $this->createTransfer->handle(
@@ -64,8 +64,8 @@ final class RecordTransfer extends Tool
                 $request->get('description'),
                 creator: $this->authenticatedUser($request),
             );
-        } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return Response::error($invalidArgumentException->getMessage());
         }
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'created', $transaction, [

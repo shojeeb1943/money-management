@@ -8,7 +8,7 @@ use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
 use RuntimeException;
 
-final class EnsurePersonalAccessClient
+final readonly class EnsurePersonalAccessClient
 {
     public function __construct(private ClientRepository $clients) {}
 

@@ -23,7 +23,7 @@ final class BudgetController extends Controller
             ->forCompany($current_company)
             ->with('category')
             ->get()
-            ->map(fn (Budget $budget) => [
+            ->map(fn (Budget $budget): array => [
                 'id' => $budget->id,
                 'categoryId' => $budget->category_id,
                 'categoryName' => $budget->category->name,
@@ -33,7 +33,7 @@ final class BudgetController extends Controller
                 'period' => $budget->period,
                 'spent' => $evaluator->periodSpend($current_company, $budget->category, now($current_company->timezone), $budget->period),
             ])
-            ->sortByDesc(fn (array $budget) => $budget['amount'] > 0 ? $budget['spent'] / $budget['amount'] : 0)
+            ->sortByDesc(fn (array $budget): int|float => $budget['amount'] > 0 ? $budget['spent'] / $budget['amount'] : 0)
             ->values();
 
         return Inertia::render('budgets/index', [
@@ -43,24 +43,21 @@ final class BudgetController extends Controller
                 ->whereNull('parent_id')
                 ->orderBy('name')
                 ->get(['id', 'name'])
-                ->map(fn ($category) => ['id' => $category->id, 'name' => $category->name]),
+                ->map(fn ($category): array => ['id' => $category->id, 'name' => $category->name]),
         ]);
     }
 
     public function store(SaveBudgetRequest $request, Company $current_company): RedirectResponse
     {
-        Budget::updateOrCreate(
-            [
-                'company_id' => $current_company->id,
-                'category_id' => $request->validated('category_id'),
-                'period' => $request->validated('period'),
-            ],
-            [
-                'amount' => $request->validated('amount'),
-                'alert_threshold' => $request->validated('alert_threshold'),
-                'is_active' => true,
-            ],
-        );
+        Budget::query()->updateOrCreate([
+            'company_id' => $current_company->id,
+            'category_id' => $request->validated('category_id'),
+            'period' => $request->validated('period'),
+        ], [
+            'amount' => $request->validated('amount'),
+            'alert_threshold' => $request->validated('alert_threshold'),
+            'is_active' => true,
+        ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Budget saved.')]);
 

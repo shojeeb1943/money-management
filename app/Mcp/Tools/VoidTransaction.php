@@ -48,8 +48,8 @@ final class VoidTransaction extends Tool
 
         try {
             $this->voidTransaction->handle($transaction);
-        } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return Response::error($invalidArgumentException->getMessage());
         }
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'voided', $transaction, [

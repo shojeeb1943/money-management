@@ -7,6 +7,7 @@ namespace App\Mcp\Tools;
 use App\Actions\Categories\CreateCategory as CreateCategoryAction;
 use App\Enums\CategoryKind;
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Category;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
@@ -47,8 +48,8 @@ final class CreateCategory extends Tool
 
         try {
             $category = $this->createCategory->handle($company, (string) $request->get('name'), $kind, $parent);
-        } catch (InvalidArgumentException $exception) {
-            return Response::error($exception->getMessage());
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return Response::error($invalidArgumentException->getMessage());
         }
 
         return Response::text(sprintf(
@@ -56,7 +57,7 @@ final class CreateCategory extends Tool
             $category->name,
             $category->id,
             $kind->value,
-            $parent !== null ? ', under "'.$parent->name.'"' : '',
+            $parent instanceof Category ? ', under "'.$parent->name.'"' : '',
         ));
     }
 }

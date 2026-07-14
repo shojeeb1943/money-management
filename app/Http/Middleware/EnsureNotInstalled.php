@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-final class EnsureNotInstalled
+final readonly class EnsureNotInstalled
 {
     public function __construct(private InstallationState $state) {}
 
@@ -32,7 +32,7 @@ final class EnsureNotInstalled
         }
 
         try {
-            if (Schema::hasTable('users') && User::exists()) {
+            if (Schema::hasTable('users') && User::query()->exists()) {
                 $this->state->markInstalled();
 
                 return true;

@@ -8,6 +8,7 @@ use App\Concerns\BelongsToCompany;
 use App\Enums\WalletType;
 use Database\Factories\WalletFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,17 +33,10 @@ use Illuminate\Support\Carbon;
 #[Fillable(['company_id', 'name', 'type', 'account_number', 'icon', 'color', 'currency', 'opening_balance', 'cached_balance', 'archived_at'])]
 final class Wallet extends Model
 {
-    /** @use HasFactory<WalletFactory> */
-    use BelongsToCompany, HasFactory;
+    use BelongsToCompany;
 
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->whereNull($this->qualifyColumn('archived_at'));
-    }
+    /** @use HasFactory<WalletFactory> */
+    use HasFactory;
 
     public function isArchived(): bool
     {
@@ -69,6 +63,16 @@ final class Wallet extends Model
             ->sum('amount');
 
         return $this->opening_balance + $incoming - $outgoing;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function active(Builder $query): Builder
+    {
+        return $query->whereNull($this->qualifyColumn('archived_at'));
     }
 
     /**

@@ -29,7 +29,7 @@ final class DemoSeeder extends Seeder
             'email' => 'demo@example.com',
         ]);
 
-        $company = app(CreateCompany::class)->handle($owner, 'Acme Studio');
+        $company = resolve(CreateCompany::class)->handle($owner, 'Acme Studio');
 
         $bank = $this->wallet($company, 'Bank');
         $mobile = $this->wallet($company, 'Mobile Wallet');
@@ -44,8 +44,8 @@ final class DemoSeeder extends Seeder
         $officeRent = $this->category($company, 'Office Rent');
         $bankCharges = $this->category($company, 'Bank Charges');
 
-        $create = app(CreateTransaction::class);
-        $transfer = app(CreateTransfer::class);
+        $create = resolve(CreateTransaction::class);
+        $transfer = resolve(CreateTransfer::class);
 
         $create->handle($company, TransactionType::CapitalInvestment, $bank, 50_000_000, now()->subMonths(3)->startOfMonth(), description: 'Initial capital', creator: $owner);
         $transfer->handle($company, $bank, $mobile, 5_000_000, now()->subMonths(3)->startOfMonth()->addDay(), 'Mobile wallet float', creator: $owner);
@@ -72,10 +72,10 @@ final class DemoSeeder extends Seeder
         $create->handle($company, TransactionType::CapitalWithdrawal, $mobile, 500_000, now()->subMonth()->startOfMonth()->addDays(25), description: 'Capital withdrawal', creator: $owner);
 
         $marketingBudget = 500_000;
-        Budget::create(['company_id' => $company->id, 'category_id' => $marketing->id, 'amount' => $marketingBudget, 'alert_threshold' => 80]);
-        Budget::create(['company_id' => $company->id, 'category_id' => $hosting->id, 'amount' => 800_000, 'alert_threshold' => 85]);
+        Budget::query()->create(['company_id' => $company->id, 'category_id' => $marketing->id, 'amount' => $marketingBudget, 'alert_threshold' => 80]);
+        Budget::query()->create(['company_id' => $company->id, 'category_id' => $hosting->id, 'amount' => 800_000, 'alert_threshold' => 85]);
 
-        $spentThisMonth = app(EvaluateBudgetAlert::class)->monthToDateSpend($company, $marketing, now());
+        $spentThisMonth = resolve(EvaluateBudgetAlert::class)->monthToDateSpend($company, $marketing, now());
         $topUp = (int) round($marketingBudget * 0.9) - $spentThisMonth;
 
         if ($topUp > 0) {
@@ -87,7 +87,7 @@ final class DemoSeeder extends Seeder
             ['Monthly salaries', TransactionType::Expense, $bank, $salaries, 5_000_000],
             ['Hosting subscription', TransactionType::Expense, $bank, $hosting, 350_000],
         ] as [$name, $type, $wallet, $category, $amount]) {
-            RecurringTransaction::create([
+            RecurringTransaction::query()->create([
                 'company_id' => $company->id,
                 'name' => $name,
                 'type' => $type,

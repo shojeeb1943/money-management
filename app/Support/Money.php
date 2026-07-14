@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 final class Money
 {
-    public const CURRENCIES = [
+    public const array CURRENCIES = [
         'BDT' => '৳',
         'USD' => '$',
         'EUR' => '€',
@@ -27,9 +27,7 @@ final class Money
 
         $normalized = str_replace([',', ' ', '৳'], '', (string) $amount);
 
-        if (! is_numeric($normalized)) {
-            throw new InvalidArgumentException("Invalid money amount: {$amount}");
-        }
+        throw_unless(is_numeric($normalized), InvalidArgumentException::class, 'Invalid money amount: '.$amount);
 
         return (int) round((float) $normalized * 100);
     }

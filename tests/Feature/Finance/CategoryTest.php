@@ -13,10 +13,10 @@ use App\Models\User;
 
 function categoryCompany(User $user): Company
 {
-    return app(CreateCompany::class)->handle($user, 'Acme Studio');
+    return resolve(CreateCompany::class)->handle($user, 'Acme Studio');
 }
 
-test('a category can be created with a sub-category', function () {
+test('a category can be created with a sub-category', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
@@ -39,12 +39,12 @@ test('a category can be created with a sub-category', function () {
         ->and($child->kind->value)->toBe('expense');
 });
 
-test('categories cannot nest more than two levels', function () {
+test('categories cannot nest more than two levels', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $parent = app(CreateCategory::class)->handle($company, 'Level 1', CategoryKind::Expense);
-    $child = app(CreateCategory::class)->handle($company, 'Level 2', CategoryKind::Expense, $parent);
+    $parent = resolve(CreateCategory::class)->handle($company, 'Level 1', CategoryKind::Expense);
+    $child = resolve(CreateCategory::class)->handle($company, 'Level 2', CategoryKind::Expense, $parent);
 
     $this->actingAs($user)->post(route('categories.store', ['current_company' => $company->slug]), [
         'name' => 'Level 3',
@@ -53,20 +53,20 @@ test('categories cannot nest more than two levels', function () {
     ])->assertSessionHasErrors('parent_id');
 });
 
-test('a category with ledger activity cannot be deleted but can be archived', function () {
+test('a category with ledger activity cannot be deleted but can be archived', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $category = app(CreateCategory::class)->handle($company, 'Hosting Bills', CategoryKind::Expense);
+    $category = resolve(CreateCategory::class)->handle($company, 'Hosting Bills', CategoryKind::Expense);
     $wallet = $company->wallets()->firstOrFail();
 
-    app(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 30_000, now(), $category, 'Server payment');
+    resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 30_000, now(), $category, 'Server payment');
 
     $this->actingAs($user)
         ->delete(route('categories.destroy', ['current_company' => $company->slug, 'category' => $category->id]))
         ->assertRedirect();
 
-    expect(Category::find($category->id))->not->toBeNull();
+    expect(Category::query()->find($category->id))->not->toBeNull();
 
     $this->actingAs($user)
         ->patch(route('categories.archive', ['current_company' => $company->slug, 'category' => $category->id]))
@@ -75,15 +75,15 @@ test('a category with ledger activity cannot be deleted but can be archived', fu
     expect($category->refresh()->isArchived())->toBeTrue();
 });
 
-test('an unused category can be deleted', function () {
+test('an unused category can be deleted', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $category = app(CreateCategory::class)->handle($company, 'Unused', CategoryKind::Income);
+    $category = resolve(CreateCategory::class)->handle($company, 'Unused', CategoryKind::Income);
 
     $this->actingAs($user)
         ->delete(route('categories.destroy', ['current_company' => $company->slug, 'category' => $category->id]))
         ->assertRedirect();
 
-    expect(Category::find($category->id))->toBeNull();
+    expect(Category::query()->find($category->id))->toBeNull();
 });

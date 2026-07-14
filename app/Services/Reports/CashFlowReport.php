@@ -82,7 +82,7 @@ final class CashFlowReport
             ->groupBy('type')
             ->selectRaw('type, COALESCE(SUM(amount), 0) as total')
             ->pluck('total', 'type')
-            ->map(fn ($total) => (int) $total)
+            ->map(fn ($total): int => (int) $total)
             ->all();
     }
 }

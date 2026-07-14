@@ -20,7 +20,7 @@ use App\Support\TransactionFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +45,7 @@ final class TransactionController extends Controller
             ->sum('amount');
 
         return Inertia::render('transactions/index', [
-            'transactions' => collect($transactions->items())->map(fn (Transaction $transaction) => $this->payload($transaction)),
+            'transactions' => collect($transactions->items())->map(fn (Transaction $transaction): array => $this->payload($transaction)),
             'pagination' => [
                 'currentPage' => $transactions->currentPage(),
                 'lastPage' => $transactions->lastPage(),
@@ -58,9 +58,9 @@ final class TransactionController extends Controller
             ],
             'filters' => $request->only(['type', 'wallet', 'category', 'from', 'to', 'search', 'status']),
             'wallets' => $current_company->wallets()->active()->orderBy('name')->get(['id', 'name'])
-                ->map(fn (Wallet $wallet) => ['id' => $wallet->id, 'name' => $wallet->name]),
+                ->map(fn (Wallet $wallet): array => ['id' => $wallet->id, 'name' => $wallet->name]),
             'categories' => $current_company->categories()->active()->orderBy('name')->get()
-                ->map(fn (Category $category) => [
+                ->map(fn (Category $category): array => [
                     'id' => $category->id,
                     'name' => $category->name,
                     'kind' => $category->kind->value,
@@ -80,7 +80,7 @@ final class TransactionController extends Controller
             TransactionType::from($request->validated('type')),
             Wallet::query()->forCompany($current_company)->whereKey($request->validated('wallet_id'))->firstOrFail(),
             $request->validated('amount'),
-            Carbon::parse($request->validated('date')),
+            Date::parse($request->validated('date')),
             $category,
             $request->validated('description'),
             $request->validated('reference'),
@@ -113,13 +113,12 @@ final class TransactionController extends Controller
             $transaction,
             Wallet::query()->forCompany($current_company)->whereKey($request->validated('wallet_id'))->firstOrFail(),
             $request->validated('amount'),
-            Carbon::parse($request->validated('date')),
+            Date::parse($request->validated('date')),
             $request->validated('category_id')
                 ? Category::query()->forCompany($current_company)->whereKey($request->validated('category_id'))->firstOrFail()
                 : null,
             $request->validated('description'),
             $request->validated('reference'),
-            $request->user(),
         );
 
         AuditLogger::log($current_company, $request->user(), 'updated', $transaction, [
@@ -149,7 +148,7 @@ final class TransactionController extends Controller
     /**
      * @return Builder<Transaction>
      */
-    private function filteredQuery(Request $request, Company $current_company)
+    private function filteredQuery(Request $request, Company $current_company): Builder
     {
         return TransactionFilters::apply($current_company, [
             'type' => $request->string('type')->toString(),

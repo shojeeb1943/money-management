@@ -11,7 +11,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Support\Money;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 final class EvaluateBudgetAlert
@@ -109,7 +109,7 @@ final class EvaluateBudgetAlert
      */
     private function periodWindow(CarbonInterface $date, string $period): array
     {
-        $date = Carbon::parse($date);
+        $date = Date::parse($date);
 
         return match ($period) {
             'quarterly' => [$date->copy()->firstOfQuarter()->toDateString(), $date->copy()->lastOfQuarter()->toDateString()],

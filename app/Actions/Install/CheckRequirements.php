@@ -33,7 +33,7 @@ final class CheckRequirements
         ];
 
         $extensions = array_map(
-            fn (string $extension) => ['name' => $extension, 'loaded' => extension_loaded($extension)],
+            fn (string $extension): array => ['name' => $extension, 'loaded' => extension_loaded($extension)],
             $requiredExtensions,
         );
 
@@ -48,7 +48,7 @@ final class CheckRequirements
         }
 
         $paths = array_map(
-            fn (string $path) => [
+            fn (string $path): array => [
                 'path' => str_replace(base_path().DIRECTORY_SEPARATOR, '', $path),
                 'writable' => is_writable($path),
             ],
@@ -56,9 +56,9 @@ final class CheckRequirements
         );
 
         $passes = $php['passes']
-            && collect($extensions)->every(fn (array $extension) => $extension['loaded'])
-            && collect($drivers)->contains(fn (array $driver) => $driver['loaded'])
-            && collect($paths)->every(fn (array $path) => $path['writable']);
+            && collect($extensions)->every(fn (array $extension): bool => $extension['loaded'])
+            && collect($drivers)->contains(fn (array $driver): bool => $driver['loaded'])
+            && collect($paths)->every(fn (array $path): bool => $path['writable']);
 
         return [
             'php' => $php,
