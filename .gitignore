@@ -31,3 +31,6 @@ yarn-error.log
 
 :memory:
 /storage/installed
+/graphify-out
+/.graphifyignore
+/.agents

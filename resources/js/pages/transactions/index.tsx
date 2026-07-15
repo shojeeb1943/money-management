@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import ConfirmDialog from '@/components/confirm-dialog';
+import ChatbotQuickAdd from '@/components/finance/chatbot-quick-add';
 import Money from '@/components/finance/money';
 import TransactionFormSheet, {
     entryModeFor,
@@ -157,6 +158,10 @@ export default function TransactionsIndex({
                         description="Every money in and out"
                     />
                     <div className="flex gap-2">
+                        <ChatbotQuickAdd
+                            wallets={wallets}
+                            categories={categories}
+                        />
                         <Button
                             onClick={() => openCreate('income')}
                             data-test="new-income-button"

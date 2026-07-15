@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { registerSW } from 'virtual:pwa-register';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -7,7 +8,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import InstallLayout from '@/layouts/install-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Moneta';
+const appName = import.meta.env.VITE_APP_NAME || 'Finance';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -40,3 +41,7 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+if (import.meta.env.PROD) {
+    registerSW({ immediate: true });
+}

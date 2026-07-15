@@ -14,8 +14,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCurrency } from '@/hooks/use-currency';
-import { reconcile } from '@/routes/wallets';
 import type { Wallet } from '@/types';
+import { reconcile } from '@/routes/wallets';
 
 type Props = {
     wallet: Wallet;

@@ -22,8 +22,8 @@ import {
 } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
 import { CURRENCY_SYMBOLS, currencySymbol } from '@/lib/money';
-import { store, update } from '@/routes/wallets';
 import type { Wallet, WalletTypeOption } from '@/types';
+import { store, update } from '@/routes/wallets';
 
 const COLORS = [
     '#2563eb',

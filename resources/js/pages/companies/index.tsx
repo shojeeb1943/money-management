@@ -9,8 +9,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { edit, index } from '@/routes/companies';
 import type { Company } from '@/types';
+import { edit, index } from '@/routes/companies';
 
 type Props = {
     companies: Company[];

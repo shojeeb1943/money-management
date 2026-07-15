@@ -11,6 +11,7 @@ enum WalletType: string
     case Cash = 'cash';
     case Card = 'card';
     case Savings = 'savings';
+    case Loan = 'loan';
 
     /**
      * @return array<array{value: string, label: string}>
@@ -31,6 +32,7 @@ enum WalletType: string
             self::Cash => 'Cash',
             self::Card => 'Card',
             self::Savings => 'Savings',
+            self::Loan => 'Loan / IOU',
         };
     }
 }

@@ -38,6 +38,15 @@ type CategoryOption = Option & {
 
 export type EntryMode = 'income' | 'expense' | 'transfer' | 'capital';
 
+type InitialValues = Partial<{
+    walletId: number;
+    counterWalletId: number;
+    categoryId: number;
+    amount: number;
+    date: string;
+    description: string;
+}>;
+
 type Props = {
     transaction?: TransactionRow | null;
     mode: EntryMode;
@@ -45,6 +54,7 @@ type Props = {
     categories: CategoryOption[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    initialValues?: InitialValues;
 };
 
 const TITLES: Record<EntryMode, { create: string; description: string }> = {
@@ -88,6 +98,7 @@ export default function TransactionFormSheet({
     categories,
     open,
     onOpenChange,
+    initialValues,
 }: Props) {
     const { currentCompany } = usePage().props;
     const { symbol } = useCurrency();
@@ -99,15 +110,21 @@ export default function TransactionFormSheet({
     const [walletId, setWalletId] = useState(
         transaction
             ? String(transaction.walletId)
-            : wallets[0]
-              ? String(wallets[0].id)
-              : '',
+            : initialValues?.walletId
+              ? String(initialValues.walletId)
+              : wallets[0]
+                ? String(wallets[0].id)
+                : '',
     );
     const [counterWalletId, setCounterWalletId] = useState(
-        transaction?.counterWalletId ? String(transaction.counterWalletId) : '',
+        transaction?.counterWalletId
+            ? String(transaction.counterWalletId)
+            : (initialValues?.counterWalletId?.toString() ?? ''),
     );
     const [categoryId, setCategoryId] = useState(
-        transaction?.categoryId ? String(transaction.categoryId) : '',
+        transaction?.categoryId
+            ? String(transaction.categoryId)
+            : (initialValues?.categoryId?.toString() ?? ''),
     );
 
     if (!currentCompany) {
@@ -351,7 +368,7 @@ export default function TransactionFormSheet({
                                             ? (
                                                   transaction.amount / 100
                                               ).toFixed(2)
-                                            : ''
+                                            : (initialValues?.amount ?? '')
                                     }
                                     placeholder="0.00"
                                     required
@@ -367,6 +384,7 @@ export default function TransactionFormSheet({
                                     type="date"
                                     defaultValue={
                                         transaction?.date ??
+                                        initialValues?.date ??
                                         todayIn(currentCompany?.timezone)
                                     }
                                     required
@@ -382,7 +400,9 @@ export default function TransactionFormSheet({
                                     id="transaction-description"
                                     name="description"
                                     defaultValue={
-                                        transaction?.description ?? ''
+                                        transaction?.description ??
+                                        initialValues?.description ??
+                                        ''
                                     }
                                     placeholder="e.g. July sales income"
                                 />

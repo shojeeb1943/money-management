@@ -11,8 +11,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { switchMethod } from '@/routes/companies';
 import type { Company } from '@/types';
+import { switchMethod } from '@/routes/companies';
 
 type CompanySwitcherProps = {
     inHeader?: boolean;

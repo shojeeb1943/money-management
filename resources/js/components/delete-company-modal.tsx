@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { destroy } from '@/routes/companies';
 import type { Company } from '@/types';
+import { destroy } from '@/routes/companies';
 
 type Props = {
     company: Company;

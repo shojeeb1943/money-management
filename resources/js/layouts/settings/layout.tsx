@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
+import { edit as editAi } from '@/routes/ai';
 import { index as apiTokens } from '@/routes/api-tokens';
 import { index as companies } from '@/routes/companies';
 import { edit } from '@/routes/profile';
@@ -20,6 +21,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Security',
         href: editSecurity(),
+        icon: null,
+    },
+    {
+        title: 'AI',
+        href: editAi(),
         icon: null,
     },
     {

@@ -10,8 +10,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { index } from '@/routes/audit';
 import type { SimplePagination } from '@/types';
+import { index } from '@/routes/audit';
 
 type LogRow = {
     id: number;

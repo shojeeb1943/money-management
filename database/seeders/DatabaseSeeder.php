@@ -14,6 +14,10 @@ final class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! app()->environment('local')) {
+            return;
+        }
+
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

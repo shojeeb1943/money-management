@@ -16,6 +16,7 @@ use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Support\AuditLogger;
+use App\Support\Money;
 use App\Support\TransactionFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -99,7 +100,7 @@ final class TransactionController extends Controller
 
         Inertia::flash('toast', $alert !== null
             ? ['type' => $alert['level'], 'message' => $alert['message']]
-            : ['type' => 'success', 'message' => __('Transaction recorded.')]);
+            : ['type' => 'success', 'message' => $this->recordedMessage($transaction, $category, $current_company)]);
 
         return back();
     }
@@ -143,6 +144,19 @@ final class TransactionController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Transaction voided.')]);
 
         return back();
+    }
+
+    private function recordedMessage(Transaction $transaction, ?Category $category, Company $current_company): string
+    {
+        $parts = array_filter([$transaction->wallet->name, $category?->name]);
+
+        return sprintf(
+            '%s of %s recorded — %s (%s).',
+            $transaction->type->label(),
+            Money::format($transaction->amount, $transaction->currency),
+            implode(' · ', $parts),
+            $current_company->name,
+        );
     }
 
     /**

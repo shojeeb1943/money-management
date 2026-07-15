@@ -4,6 +4,7 @@ import {
     ArchiveRestore,
     Banknote,
     CreditCard,
+    HandCoins,
     Landmark,
     MoreVertical,
     Pencil,
@@ -33,6 +34,7 @@ const TYPE_ICONS: Record<string, typeof Landmark> = {
     cash: Banknote,
     card: CreditCard,
     savings: PiggyBank,
+    loan: HandCoins,
 };
 
 type Props = {

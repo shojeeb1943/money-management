@@ -6,12 +6,15 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Finance\AuditLogController;
 use App\Http\Controllers\Finance\BudgetController;
 use App\Http\Controllers\Finance\CategoryController;
+use App\Http\Controllers\Finance\ChatbotController;
+use App\Http\Controllers\Finance\CrossCompanyTransferController;
 use App\Http\Controllers\Finance\RecurringTransactionController;
 use App\Http\Controllers\Finance\ReportController;
 use App\Http\Controllers\Finance\SearchController;
 use App\Http\Controllers\Finance\TransactionController;
 use App\Http\Controllers\Finance\TransferController;
 use App\Http\Controllers\Finance\WalletController;
+use App\Http\Controllers\NetWorthController;
 use App\Http\Middleware\SetCurrentCompany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +30,9 @@ Route::get('dashboard', function (Request $request) {
     return to_route('dashboard', $company->slug);
 })->middleware(['auth'])->name('dashboard.home');
 
+Route::get('net-worth', NetWorthController::class)->middleware(['auth'])->name('net-worth');
+Route::post('cross-company-transfers', [CrossCompanyTransferController::class, 'store'])->middleware(['auth'])->name('cross-company-transfers.store');
+
 Route::prefix('{current_company}')
     ->middleware(['auth', SetCurrentCompany::class])
     ->scopeBindings()
@@ -39,6 +45,7 @@ Route::prefix('{current_company}')
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('budgets', [BudgetController::class, 'index'])->name('budgets.index');
         Route::get('search', [SearchController::class, 'index'])->middleware('throttle:60,1')->name('search.index');
+        Route::post('chatbot/parse', [ChatbotController::class, 'parse'])->middleware('throttle:20,1')->name('chatbot.parse');
         Route::get('recurring', [RecurringTransactionController::class, 'index'])->name('recurring.index');
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/category-breakdown', [ReportController::class, 'categoryBreakdown'])->name('reports.category-breakdown');

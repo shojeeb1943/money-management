@@ -15,8 +15,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { formatDate } from '@/lib/date';
-import { index, show } from '@/routes/wallets';
 import type { LedgerRow, SimplePagination, Wallet } from '@/types';
+import { index, show } from '@/routes/wallets';
 
 type Props = {
     wallet: Wallet;

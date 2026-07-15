@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Companies\CompanyController;
+use App\Http\Controllers\Settings\AiController;
 use App\Http\Controllers\Settings\ApiTokenController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -27,6 +28,9 @@ Route::middleware(['auth'])->group(function (): void {
     Route::put('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
+
+    Route::get('settings/ai', [AiController::class, 'edit'])->name('ai.edit');
+    Route::patch('settings/ai', [AiController::class, 'update'])->name('ai.update');
 
     Route::get('settings/api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
     Route::post('settings/api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');

@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { store, update } from '@/routes/categories';
 import type { Category } from '@/types';
+import { store, update } from '@/routes/categories';
 
 const COLORS = [
     '#16a34a',

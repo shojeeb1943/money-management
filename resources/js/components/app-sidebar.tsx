@@ -6,6 +6,7 @@ import {
     LayoutGrid,
     PiggyBank,
     RefreshCw,
+    Scale,
     Shapes,
     WalletCards,
 } from 'lucide-react';
@@ -22,7 +23,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, netWorth } from '@/routes';
 import { index as auditIndex } from '@/routes/audit';
 import { index as budgetsIndex } from '@/routes/budgets';
 import { index as categoriesIndex } from '@/routes/categories';
@@ -42,6 +43,11 @@ export function AppSidebar() {
             title: 'Dashboard',
             href: dashboardUrl,
             icon: LayoutGrid,
+        },
+        {
+            title: 'Net Worth',
+            href: netWorth(),
+            icon: Scale,
         },
         ...(companySlug
             ? [

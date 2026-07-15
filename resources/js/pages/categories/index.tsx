@@ -20,8 +20,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { archive, destroy, index } from '@/routes/categories';
 import type { Category } from '@/types';
+import { archive, destroy, index } from '@/routes/categories';
 
 type Props = {
     categories: Category[];

@@ -30,14 +30,18 @@ use Laravel\Passport\HasApiTokens;
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
  * @property int|null $current_company_id
+ * @property string|null $ai_provider
+ * @property string|null $ai_model
+ * @property string|null $ai_api_key
+ * @property string|null $ai_base_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Company|null $currentCompany
  * @property-read Collection<int, Company> $ownedCompanies
  * @property-read Collection<int, Company> $companies
  */
-#[Fillable(['name', 'email', 'password', 'current_company_id'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'current_company_id', 'ai_provider', 'ai_model', 'ai_api_key', 'ai_base_url'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'ai_api_key'])]
 final class User extends Authenticatable implements OAuthenticatable, PasskeyUser
 {
     use HasApiTokens;
@@ -61,6 +65,7 @@ final class User extends Authenticatable implements OAuthenticatable, PasskeyUse
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'ai_api_key' => 'encrypted',
         ];
     }
 }
