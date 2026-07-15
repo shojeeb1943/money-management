@@ -28,7 +28,7 @@ import { dashboard, netWorth } from '@/routes';
 import { index as auditIndex } from '@/routes/audit';
 import { index as budgetsIndex } from '@/routes/budgets';
 import { index as categoriesIndex } from '@/routes/categories';
-import { index as obligationsIndex } from '@/routes/obligations';
+
 import { index as recurringIndex } from '@/routes/recurring';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as transactionsIndex } from '@/routes/transactions';
@@ -70,7 +70,7 @@ export function AppSidebar() {
                   },
                   {
                       title: 'Obligations',
-                      href: obligationsIndex({ current_company: companySlug }),
+                      href: `/${companySlug}/obligations`,
                       icon: HandCoins,
                   },
                   {

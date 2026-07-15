@@ -1,6 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { Archive, ArchiveRestore, HandCoins, HandHeart, Landmark, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { formatMoney } from '@/lib/money';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -29,10 +29,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { archive, index, pay, store } from '@/routes/obligations';
-import { formatMoney } from '@/lib/money';
 
 type Wallet = { id: number; name: string; currency: string };
 type Kind = { value: string; label: string };
@@ -68,11 +64,17 @@ type Props = {
     kinds: Kind[];
 };
 
-const kindIcons: Record<string, typeof HandCoins> = {
-    loan: HandCoins,
-    lend: HandHeart,
-    safekeeping: Landmark,
-};
+function routeUrl(path: string, companySlug: string, extra?: Record<string, string | number>): string {
+    let url = `/${companySlug}${path}`;
+
+    if (extra) {
+        for (const [key, value] of Object.entries(extra)) {
+            url = url.replace(`{${key}}`, String(value));
+        }
+    }
+
+    return url;
+}
 
 export default function ObligationsIndex({ obligations, wallets, kinds }: Props) {
     const { currentCompany } = usePage().props;
@@ -100,7 +102,7 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
 
     const toggleArchive = (obligation: Obligation) => {
         router.patch(
-            archive.url({ current_company: companySlug, obligation: obligation.id }),
+            routeUrl('/obligations/{obligation}/archive', companySlug, { obligation: obligation.id }),
             {},
             { preserveScroll: true },
         );
@@ -204,8 +206,6 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
         );
     };
 
-    const KindIcon = kindIcons[activeTab] ?? HandCoins;
-
     return (
         <>
             <Head title="Obligations" />
@@ -221,15 +221,22 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
                     </Button>
                 </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList>
-                        {kinds.map((k) => (
-                            <TabsTrigger key={k.value} value={k.value}>
-                                {k.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                </Tabs>
+                <div className="flex gap-1 rounded-lg bg-muted p-1">
+                    {kinds.map((k) => (
+                        <button
+                            key={k.value}
+                            type="button"
+                            onClick={() => setActiveTab(k.value)}
+                            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                                activeTab === k.value
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {k.label}
+                        </button>
+                    ))}
+                </div>
 
                 <div className="space-y-4">
                     {activeActive.length === 0 && activeSettled.length === 0 ? (
@@ -332,7 +339,7 @@ function NewObligationModal({
 
     const submit = () => {
         router.post(
-            store.url({ current_company: companySlug }),
+            routeUrl('/obligations', companySlug),
             { kind, label, amount, wallet_id: walletId, description },
             { preserveScroll: true, onSuccess: () => onOpenChange(false) },
         );
@@ -369,7 +376,7 @@ function NewObligationModal({
                         <Label>Name</Label>
                         <Input
                             value={label}
-                            onChange={(e) => setLabel(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setLabel(e.target.value)}
                             placeholder="Who is this with?"
                         />
                     </div>
@@ -378,7 +385,7 @@ function NewObligationModal({
                         <Label>Amount</Label>
                         <Input
                             value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
                             placeholder="0.00"
                         />
                     </div>
@@ -401,9 +408,11 @@ function NewObligationModal({
 
                     <div>
                         <Label>Note (optional)</Label>
-                        <Textarea
+                        <textarea
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                            className="min-h-20 w-full rounded-md border border-input bg-transparent p-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            rows={3}
                         />
                     </div>
                 </div>
@@ -440,7 +449,7 @@ function PayModal({
 
     const submit = () => {
         router.post(
-            pay.url({ current_company: companySlug, obligation: obligation.id }),
+            routeUrl('/obligations/{obligation}/pay', companySlug, { obligation: obligation.id }),
             { amount, date, description },
             { preserveScroll: true, onSuccess: () => onClose() },
         );
@@ -462,7 +471,7 @@ function PayModal({
                         <Label>Amount</Label>
                         <Input
                             value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
                             placeholder="0.00"
                         />
                     </div>
@@ -472,15 +481,17 @@ function PayModal({
                         <Input
                             type="date"
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
                         />
                     </div>
 
                     <div>
                         <Label>Note (optional)</Label>
-                        <Textarea
+                        <textarea
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                            className="min-h-20 w-full rounded-md border border-input bg-transparent p-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            rows={3}
                         />
                     </div>
                 </div>
@@ -498,15 +509,8 @@ function PayModal({
     );
 }
 
-ObligationsIndex.layout = (props: {
-    currentCompany?: { slug: string } | null;
-}) => ({
-    breadcrumbs: props.currentCompany
-        ? [
-              {
-                  title: 'Obligations',
-                  href: index({ current_company: props.currentCompany.slug }),
-              },
-          ]
-        : [],
+ObligationsIndex.layout = () => ({
+    breadcrumbs: [
+        { title: 'Obligations', href: '/obligations' },
+    ],
 });
