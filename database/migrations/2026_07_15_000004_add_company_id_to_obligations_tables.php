@@ -11,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('obligations', function (Blueprint $table): void {
-            $table->foreignId('company_id')->after('id')->constrained()->cascadeOnDelete();
+            $table->foreignId('company_id')->nullable()->after('id')->constrained()->cascadeOnDelete();
         });
 
         Schema::table('obligation_payments', function (Blueprint $table): void {
-            $table->foreignId('company_id')->after('id')->constrained()->cascadeOnDelete();
+            $table->foreignId('company_id')->nullable()->after('id')->constrained()->cascadeOnDelete();
         });
     }
 
