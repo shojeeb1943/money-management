@@ -32,7 +32,7 @@ final class ListWallets extends Tool
     {
         $company = $this->company($request);
 
-        $wallets = $company->wallets()
+        $wallets = Wallet::query()
             ->when($request->get('include_archived') !== true, fn ($query) => $query->active())
             ->orderBy('name')
             ->get()

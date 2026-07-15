@@ -38,7 +38,6 @@ final class CashFlowReport
         $financingOutflow = $sums[TransactionType::CapitalWithdrawal->value] ?? 0;
 
         $walletOpenings = (int) DB::table('wallets')
-            ->where('company_id', $company->id)
             ->where('currency', $company->currency)
             ->sum('opening_balance');
 

@@ -59,11 +59,8 @@ final readonly class CreateTransaction
 
         throw_if($type === TransactionType::Transfer, InvalidArgumentException::class, 'Use CreateTransfer for transfers.');
 
-        throw_if($wallet->company_id !== $company->id, InvalidArgumentException::class, 'Wallet belongs to another company.');
-
         if ($type->requiresCategory()) {
             throw_if(! $category instanceof Category, InvalidArgumentException::class, 'This transaction type requires a category.');
-            throw_if($category->company_id !== $company->id, InvalidArgumentException::class, 'Category belongs to another company.');
             throw_if($category->kind !== $type->categoryKind(), InvalidArgumentException::class, 'Category kind does not match the transaction type.');
         } elseif ($category instanceof Category) {
             throw new InvalidArgumentException('This transaction type does not take a category.');

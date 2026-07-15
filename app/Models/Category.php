@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Concerns\BelongsToCompany;
 use App\Enums\CategoryKind;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,7 +18,6 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $company_id
  * @property int|null $parent_id
  * @property CategoryKind $kind
  * @property string $name
@@ -28,15 +26,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Company $company
  * @property-read Category|null $parent
  * @property-read Collection<int, Category> $children
  */
-#[Fillable(['company_id', 'parent_id', 'kind', 'name', 'icon', 'color', 'archived_at'])]
+#[Fillable(['parent_id', 'kind', 'name', 'icon', 'color', 'archived_at'])]
 final class Category extends Model
 {
-    use BelongsToCompany;
-
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
 

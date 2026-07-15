@@ -58,9 +58,9 @@ final class TransactionController extends Controller
                 'net' => $totalIn - $totalOut,
             ],
             'filters' => $request->only(['type', 'wallet', 'category', 'from', 'to', 'search', 'status']),
-            'wallets' => $current_company->wallets()->active()->orderBy('name')->get(['id', 'name'])
+            'wallets' => Wallet::query()->active()->orderBy('name')->get(['id', 'name'])
                 ->map(fn (Wallet $wallet): array => ['id' => $wallet->id, 'name' => $wallet->name]),
-            'categories' => $current_company->categories()->active()->orderBy('name')->get()
+            'categories' => Category::query()->active()->orderBy('name')->get()
                 ->map(fn (Category $category): array => [
                     'id' => $category->id,
                     'name' => $category->name,
@@ -73,13 +73,13 @@ final class TransactionController extends Controller
     public function store(SaveTransactionRequest $request, Company $current_company, CreateTransaction $createTransaction, EvaluateBudgetAlert $evaluateBudgetAlert): RedirectResponse
     {
         $category = $request->validated('category_id')
-            ? Category::query()->forCompany($current_company)->whereKey($request->validated('category_id'))->firstOrFail()
+            ? Category::query()->whereKey($request->validated('category_id'))->firstOrFail()
             : null;
 
         $transaction = $createTransaction->handle(
             $current_company,
             TransactionType::from($request->validated('type')),
-            Wallet::query()->forCompany($current_company)->whereKey($request->validated('wallet_id'))->firstOrFail(),
+            Wallet::query()->whereKey($request->validated('wallet_id'))->firstOrFail(),
             $request->validated('amount'),
             Date::parse($request->validated('date')),
             $category,
@@ -119,11 +119,11 @@ final class TransactionController extends Controller
 
         $updateTransaction->handle(
             $transaction,
-            Wallet::query()->forCompany($current_company)->whereKey($request->validated('wallet_id'))->firstOrFail(),
+            Wallet::query()->whereKey($request->validated('wallet_id'))->firstOrFail(),
             $request->validated('amount'),
             Date::parse($request->validated('date')),
             $request->validated('category_id')
-                ? Category::query()->forCompany($current_company)->whereKey($request->validated('category_id'))->firstOrFail()
+                ? Category::query()->whereKey($request->validated('category_id'))->firstOrFail()
                 : null,
             $request->validated('description'),
             $request->validated('reference'),

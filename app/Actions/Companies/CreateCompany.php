@@ -22,8 +22,8 @@ final readonly class CreateCompany
         return DB::transaction(function () use ($user, $name) {
             $company = Company::query()->create(['name' => $name]);
 
-            $this->setupDefaultWallets->handle($company);
-            $this->setupDefaultCategories->handle($company);
+            $this->setupDefaultWallets->handle();
+            $this->setupDefaultCategories->handle();
 
             $user->switchCompany($company);
 

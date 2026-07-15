@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+
 beforeEach(function (): void {
     $this->flag = storage_path('installed');
     @unlink($this->flag);
@@ -35,4 +37,12 @@ test('web routes work normally when installed', function (): void {
     file_put_contents($this->flag, '{}');
 
     $this->get('/login')->assertOk();
+});
+
+test('web routes self-heal when the flag is missing but an admin already exists', function (): void {
+    User::factory()->create();
+
+    $this->get('/login')->assertOk();
+
+    expect(file_exists($this->flag))->toBeTrue();
 });

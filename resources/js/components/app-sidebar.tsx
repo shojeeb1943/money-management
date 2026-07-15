@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     ChartColumn,
+    HandCoins,
     History,
     LayoutGrid,
     PiggyBank,
@@ -27,6 +28,7 @@ import { dashboard, netWorth } from '@/routes';
 import { index as auditIndex } from '@/routes/audit';
 import { index as budgetsIndex } from '@/routes/budgets';
 import { index as categoriesIndex } from '@/routes/categories';
+import { index as obligationsIndex } from '@/routes/obligations';
 import { index as recurringIndex } from '@/routes/recurring';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as transactionsIndex } from '@/routes/transactions';
@@ -65,6 +67,11 @@ export function AppSidebar() {
                       title: 'Budgets',
                       href: budgetsIndex({ current_company: companySlug }),
                       icon: PiggyBank,
+                  },
+                  {
+                      title: 'Obligations',
+                      href: obligationsIndex({ current_company: companySlug }),
+                      icon: HandCoins,
                   },
                   {
                       title: 'Recurring',

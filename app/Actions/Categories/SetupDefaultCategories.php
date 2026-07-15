@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Categories;
 
 use App\Enums\CategoryKind;
-use App\Models\Company;
 
 final readonly class SetupDefaultCategories
 {
@@ -27,11 +26,11 @@ final readonly class SetupDefaultCategories
 
     public function __construct(private CreateCategory $createCategory) {}
 
-    public function handle(Company $company): void
+    public function handle(): void
     {
         foreach (self::DEFAULTS as $kind => $categories) {
             foreach ($categories as [$name, $icon, $color]) {
-                $this->createCategory->handle($company, $name, CategoryKind::from($kind), icon: $icon, color: $color);
+                $this->createCategory->handle($name, CategoryKind::from($kind), icon: $icon, color: $color);
             }
         }
     }

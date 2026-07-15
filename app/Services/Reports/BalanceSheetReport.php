@@ -25,7 +25,6 @@ final class BalanceSheetReport
     public function generate(Company $company, CarbonInterface $asOf): array
     {
         $wallets = Wallet::query()
-            ->forCompany($company)
             ->where('currency', $company->currency)
             ->orderBy('name')
             ->get();

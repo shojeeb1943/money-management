@@ -47,7 +47,7 @@ final class CreateCategory extends Tool
             : null;
 
         try {
-            $category = $this->createCategory->handle($company, (string) $request->get('name'), $kind, $parent);
+            $category = $this->createCategory->handle((string) $request->get('name'), $kind, $parent);
         } catch (InvalidArgumentException $invalidArgumentException) {
             return Response::error($invalidArgumentException->getMessage());
         }

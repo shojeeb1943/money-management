@@ -7,6 +7,7 @@ namespace App\Mcp\Tools;
 use App\Actions\Wallets\UpdateWallet as UpdateWalletAction;
 use App\Enums\WalletType;
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Wallet;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -49,8 +50,8 @@ final class UpdateWallet extends Tool
 
         $newName = (string) $request->get('name', $wallet->name);
 
-        if ($newName !== $wallet->name && $company->wallets()->where('name', $newName)->exists()) {
-            return Response::error('A wallet with this name already exists in the company.');
+        if ($newName !== $wallet->name && Wallet::query()->where('name', $newName)->exists()) {
+            return Response::error('A wallet with this name already exists.');
         }
 
         $this->updateWallet->handle(

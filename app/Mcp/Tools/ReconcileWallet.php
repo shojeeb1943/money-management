@@ -45,6 +45,7 @@ final class ReconcileWallet extends Tool
         $transaction = $this->reconcileWallet->handle(
             $wallet,
             Money::toMinorUnits((string) $request->get('actual_balance')),
+            $company,
             $this->authenticatedUser($request),
         );
 

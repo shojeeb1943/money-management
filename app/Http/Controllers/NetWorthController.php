@@ -20,7 +20,7 @@ final class NetWorthController extends Controller
 
         $companies = Company::query()->orderBy('name')->get()->map(function (Company $company) use ($incomeStatement, $from, $to): array {
             $statement = $incomeStatement->generate($company, $from, $to);
-            $wallets = $company->wallets()->active()->orderBy('name')->get();
+            $wallets = Wallet::query()->active()->orderBy('name')->get();
 
             return [
                 'id' => $company->id,

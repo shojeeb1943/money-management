@@ -35,9 +35,9 @@ trait InteractsWithCompany
     protected function wallet(Company $company, string|int $identifier): Wallet
     {
         $wallet = is_numeric($identifier)
-            ? $company->wallets()->whereKey((int) $identifier)->first()
+            ? Wallet::query()->whereKey((int) $identifier)->first()
             : null;
-        $wallet ??= $company->wallets()->where('name', (string) $identifier)->first();
+        $wallet ??= Wallet::query()->where('name', (string) $identifier)->first();
 
         if (! $wallet instanceof Wallet) {
             throw ValidationException::withMessages([
@@ -50,7 +50,7 @@ trait InteractsWithCompany
 
     protected function category(Company $company, string|int $identifier, ?CategoryKind $kind = null): Category
     {
-        $query = $company->categories()->when($kind instanceof CategoryKind, fn ($inner) => $inner->where('kind', $kind));
+        $query = Category::query()->when($kind instanceof CategoryKind, fn ($inner) => $inner->where('kind', $kind));
 
         $category = is_numeric($identifier)
             ? (clone $query)->whereKey((int) $identifier)->first()

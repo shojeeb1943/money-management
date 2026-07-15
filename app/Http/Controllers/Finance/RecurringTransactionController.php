@@ -8,8 +8,10 @@ use App\Enums\RecurrenceFrequency;
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveRecurringTransactionRequest;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\RecurringTransaction;
+use App\Models\Wallet;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -48,9 +50,9 @@ final class RecurringTransactionController extends Controller
                     'lastRunOn' => $recurring->last_run_on?->toDateString(),
                     'active' => $recurring->is_active,
                 ]),
-            'wallets' => $current_company->wallets()->active()->orderBy('name')->get(['id', 'name'])
+            'wallets' => Wallet::query()->active()->orderBy('name')->get(['id', 'name'])
                 ->map(fn ($wallet): array => ['id' => $wallet->id, 'name' => $wallet->name]),
-            'categories' => $current_company->categories()->active()->orderBy('name')->get()
+            'categories' => Category::query()->active()->orderBy('name')->get()
                 ->map(fn ($category): array => [
                     'id' => $category->id,
                     'name' => $category->name,

@@ -9,6 +9,7 @@ use App\Actions\Transactions\CreateTransaction;
 use App\Enums\CategoryKind;
 use App\Enums\TransactionType;
 use App\Models\Category;
+use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -23,7 +24,7 @@ final readonly class ReconcileWallet
         private CreateCategory $createCategory,
     ) {}
 
-    public function handle(Wallet $wallet, int $actualBalance, ?User $user = null): ?Transaction
+    public function handle(Wallet $wallet, int $actualBalance, Company $company, ?User $user = null): ?Transaction
     {
         $wallet->refresh();
 
@@ -33,16 +34,16 @@ final readonly class ReconcileWallet
             return null;
         }
 
-        return DB::transaction(function () use ($wallet, $difference, $user): Transaction {
+        return DB::transaction(function () use ($wallet, $company, $difference, $user): Transaction {
             $kind = $difference > 0 ? CategoryKind::Income : CategoryKind::Expense;
-            $category = $this->adjustmentCategory($wallet, $kind);
+            $category = $this->adjustmentCategory($kind);
 
             return $this->createTransaction->handle(
-                $wallet->company,
+                $company,
                 $difference > 0 ? TransactionType::Income : TransactionType::Expense,
                 $wallet,
                 abs($difference),
-                now($wallet->company->timezone),
+                now($company->timezone),
                 $category,
                 'Balance reconciliation for '.$wallet->name,
                 creator: $user,
@@ -50,16 +51,14 @@ final readonly class ReconcileWallet
         });
     }
 
-    private function adjustmentCategory(Wallet $wallet, CategoryKind $kind): Category
+    private function adjustmentCategory(CategoryKind $kind): Category
     {
         $existing = Category::query()
-            ->forCompany($wallet->company)
             ->where('kind', $kind)
             ->where('name', self::ADJUSTMENT_CATEGORY)
             ->first();
 
         return $existing ?? $this->createCategory->handle(
-            $wallet->company,
             self::ADJUSTMENT_CATEGORY,
             $kind,
             icon: 'scale',

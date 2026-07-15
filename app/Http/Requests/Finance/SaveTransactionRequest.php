@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Finance;
 
 use App\Enums\TransactionType;
-use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Models\Transaction;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,8 +12,6 @@ use Illuminate\Validation\Rule;
 
 final class SaveTransactionRequest extends FormRequest
 {
-    use ResolvesCurrentCompany;
-
     public function authorize(): bool
     {
         $type = TransactionType::tryFrom((string) $this->input('type'));
@@ -28,7 +25,6 @@ final class SaveTransactionRequest extends FormRequest
     public function rules(): array
     {
         $type = TransactionType::tryFrom((string) $this->input('type'));
-        $company = $this->company();
         $transaction = $this->route('transaction');
 
         return [
@@ -37,14 +33,13 @@ final class SaveTransactionRequest extends FormRequest
                 : ['required', Rule::enum(TransactionType::class)->except(TransactionType::Transfer)],
             'wallet_id' => [
                 'required',
-                Rule::exists('wallets', 'id')->where('company_id', $company->id)->whereNull('archived_at'),
+                Rule::exists('wallets', 'id')->whereNull('archived_at'),
             ],
             'category_id' => [
                 Rule::requiredIf($type?->requiresCategory() ?? false),
                 Rule::prohibitedIf(! ($type?->requiresCategory() ?? true)),
                 'nullable',
                 Rule::exists('categories', 'id')
-                    ->where('company_id', $company->id)
                     ->where('kind', $type?->categoryKind()?->value)
                     ->whereNull('archived_at'),
             ],

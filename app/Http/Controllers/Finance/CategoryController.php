@@ -24,7 +24,7 @@ final class CategoryController extends Controller
 {
     public function index(Request $request, Company $current_company): Response
     {
-        $categories = $current_company->categories()
+        $categories = Category::query()
             ->withExists('children')
             ->orderBy('name')
             ->get();
@@ -60,11 +60,10 @@ final class CategoryController extends Controller
     public function store(SaveCategoryRequest $request, Company $current_company, CreateCategory $createCategory): RedirectResponse
     {
         $parent = $request->validated('parent_id')
-            ? Category::query()->forCompany($current_company)->whereKey($request->validated('parent_id'))->firstOrFail()
+            ? Category::query()->whereKey($request->validated('parent_id'))->firstOrFail()
             : null;
 
         $createCategory->handle(
-            $current_company,
             $request->validated('name'),
             CategoryKind::from($request->validated('kind')),
             $parent,

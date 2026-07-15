@@ -51,9 +51,9 @@ final readonly class RestoreAuditLog
         throw_if($before === null, InvalidArgumentException::class, 'This change predates restore support.');
 
         /** @var array{wallet_id: int, category_id: int|null, amount: int, date: string, description: string|null, reference: string|null} $before */
-        $wallet = Wallet::query()->forCompany($auditLog->company)->findOrFail($before['wallet_id']);
+        $wallet = Wallet::query()->findOrFail($before['wallet_id']);
         $category = $before['category_id'] !== null
-            ? Category::query()->forCompany($auditLog->company)->find($before['category_id'])
+            ? Category::query()->find($before['category_id'])
             : null;
 
         return $this->updateTransaction->handle(

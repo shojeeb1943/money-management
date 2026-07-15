@@ -8,6 +8,7 @@ use App\Http\Controllers\Finance\BudgetController;
 use App\Http\Controllers\Finance\CategoryController;
 use App\Http\Controllers\Finance\ChatbotController;
 use App\Http\Controllers\Finance\CrossCompanyTransferController;
+use App\Http\Controllers\Finance\ObligationController;
 use App\Http\Controllers\Finance\RecurringTransactionController;
 use App\Http\Controllers\Finance\ReportController;
 use App\Http\Controllers\Finance\SearchController;
@@ -73,6 +74,11 @@ Route::prefix('{current_company}')
         Route::post('recurring', [RecurringTransactionController::class, 'store'])->name('recurring.store');
         Route::patch('recurring/{recurring_transaction}/toggle', [RecurringTransactionController::class, 'toggle'])->name('recurring.toggle');
         Route::delete('recurring/{recurring_transaction}', [RecurringTransactionController::class, 'destroy'])->name('recurring.destroy');
+
+        Route::get('obligations', [ObligationController::class, 'index'])->name('obligations.index');
+        Route::post('obligations', [ObligationController::class, 'store'])->name('obligations.store');
+        Route::post('obligations/{obligation}/pay', [ObligationController::class, 'pay'])->name('obligations.pay');
+        Route::patch('obligations/{obligation}/archive', [ObligationController::class, 'archive'])->name('obligations.archive');
 
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

@@ -54,6 +54,20 @@ test('the custom provider requires a base url', function (): void {
     ])->assertSessionHasErrors('base_url');
 });
 
+test('a custom base url cannot point to a private or reserved network address', function (string $baseUrl): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->patch(route('ai.update'), [
+        'provider' => 'custom',
+        'model' => 'my-model',
+        'base_url' => $baseUrl,
+    ])->assertSessionHasErrors('base_url');
+})->with([
+    'link-local metadata service' => ['http://169.254.169.254/'],
+    'loopback IP' => ['http://127.0.0.1:8080'],
+    'localhost hostname' => ['http://localhost/'],
+]);
+
 test('a fallback provider can be configured alongside the primary', function (): void {
     $user = User::factory()->create();
 

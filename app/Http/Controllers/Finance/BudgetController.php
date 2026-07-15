@@ -9,6 +9,7 @@ use App\Enums\CategoryKind;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveBudgetRequest;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ final class BudgetController extends Controller
 
         return Inertia::render('budgets/index', [
             'budgets' => $budgets,
-            'categories' => $current_company->categories()->active()
+            'categories' => Category::query()->active()
                 ->where('kind', CategoryKind::Expense)
                 ->whereNull('parent_id')
                 ->orderBy('name')

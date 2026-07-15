@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Concerns\BelongsToCompany;
 use App\Enums\WalletType;
 use Database\Factories\WalletFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,7 +15,6 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $company_id
  * @property string $name
  * @property WalletType $type
  * @property string|null $account_number
@@ -28,13 +26,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Company $company
  */
-#[Fillable(['company_id', 'name', 'type', 'account_number', 'icon', 'color', 'currency', 'opening_balance', 'cached_balance', 'archived_at'])]
+#[Fillable(['name', 'type', 'account_number', 'icon', 'color', 'currency', 'opening_balance', 'cached_balance', 'archived_at'])]
 final class Wallet extends Model
 {
-    use BelongsToCompany;
-
     /** @use HasFactory<WalletFactory> */
     use HasFactory;
 
@@ -45,7 +40,7 @@ final class Wallet extends Model
 
     public function derivedBalance(): int
     {
-        $incoming = (int) $this->company->transactions()
+        $incoming = (int) Transaction::query()
             ->posted()
             ->where(fn ($query) => $query
                 ->where(fn ($inner) => $inner
@@ -56,7 +51,7 @@ final class Wallet extends Model
                     ->where('type', 'transfer')))
             ->sum('amount');
 
-        $outgoing = (int) $this->company->transactions()
+        $outgoing = (int) Transaction::query()
             ->posted()
             ->where('wallet_id', $this->id)
             ->whereIn('type', ['expense', 'capital_withdrawal', 'transfer'])

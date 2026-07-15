@@ -42,22 +42,6 @@ final class Company extends Model
     ];
 
     /**
-     * @return HasMany<Wallet, $this>
-     */
-    public function wallets(): HasMany
-    {
-        return $this->hasMany(Wallet::class);
-    }
-
-    /**
-     * @return HasMany<Category, $this>
-     */
-    public function categories(): HasMany
-    {
-        return $this->hasMany(Category::class);
-    }
-
-    /**
      * @return HasMany<Transaction, $this>
      */
     public function transactions(): HasMany

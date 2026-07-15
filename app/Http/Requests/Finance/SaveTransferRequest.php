@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Finance;
 
-use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class SaveTransferRequest extends FormRequest
 {
-    use ResolvesCurrentCompany;
-
     public function authorize(): bool
     {
         return true;
@@ -23,17 +20,15 @@ final class SaveTransferRequest extends FormRequest
      */
     public function rules(): array
     {
-        $company = $this->company();
-
         return [
             'wallet_id' => [
                 'required',
-                Rule::exists('wallets', 'id')->where('company_id', $company->id)->whereNull('archived_at'),
+                Rule::exists('wallets', 'id')->whereNull('archived_at'),
             ],
             'counter_wallet_id' => [
                 'required',
                 'different:wallet_id',
-                Rule::exists('wallets', 'id')->where('company_id', $company->id)->whereNull('archived_at'),
+                Rule::exists('wallets', 'id')->whereNull('archived_at'),
             ],
             'amount' => ['required', 'integer', 'min:1'],
             'date' => ['required', 'date'],

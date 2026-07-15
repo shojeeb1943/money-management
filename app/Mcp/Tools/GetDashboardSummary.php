@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Wallet;
 use App\Services\Reports\CashFlowReport;
 use App\Services\Reports\IncomeStatementReport;
 use App\Support\Money;
@@ -46,7 +47,7 @@ final class GetDashboardSummary extends Tool
 
         $statement = $this->incomeStatement->generate($company, $from, $to);
         $cashFlow = $this->cashFlow->generate($company, $from, $to);
-        $totalCash = (int) $company->wallets()->active()->where('currency', $company->currency)->sum('cached_balance');
+        $totalCash = (int) Wallet::query()->active()->where('currency', $company->currency)->sum('cached_balance');
 
         return Response::json([
             'company' => $company->slug,

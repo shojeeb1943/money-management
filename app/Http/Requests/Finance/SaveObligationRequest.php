@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Finance;
 
-use App\Enums\CategoryKind;
+use App\Enums\ObligationKind;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class SaveBudgetRequest extends FormRequest
+final class SaveObligationRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -22,16 +22,11 @@ final class SaveBudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => [
-                'required',
-                Rule::exists('categories', 'id')
-                    ->where('kind', CategoryKind::Expense->value)
-                    ->whereNull('parent_id')
-                    ->whereNull('archived_at'),
-            ],
-            'period' => ['required', Rule::in(['monthly', 'quarterly', 'yearly'])],
+            'kind' => ['required', Rule::enum(ObligationKind::class)],
+            'label' => ['required', 'string', 'max:100'],
+            'wallet_id' => ['required', 'exists:wallets,id'],
             'amount' => ['required', 'integer', 'min:1'],
-            'alert_threshold' => ['required', 'integer', 'min:1', 'max:100'],
+            'description' => ['nullable', 'string', 'max:255'],
         ];
     }
 

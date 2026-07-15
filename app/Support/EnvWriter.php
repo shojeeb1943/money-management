@@ -39,6 +39,8 @@ final class EnvWriter
 
         $value = (string) $value;
 
+        throw_if(str_contains($value, "\n") || str_contains($value, "\r"), RuntimeException::class, 'Environment values cannot contain newlines.');
+
         if (preg_match('/^[A-Za-z0-9_.\-:\/]+$/', $value)) {
             return $value;
         }

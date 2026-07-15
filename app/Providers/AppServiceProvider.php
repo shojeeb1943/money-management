@@ -38,7 +38,7 @@ final class AppServiceProvider extends ServiceProvider
     {
         Passport::tokensExpireIn(now()->addDays(15));
         Passport::refreshTokensExpireIn(now()->addDays(30));
-        Passport::personalAccessTokensExpireIn(now()->addYear());
+        Passport::personalAccessTokensExpireIn(now()->addDays(90));
 
         Passport::authorizationView(
             fn (array $parameters) => response()->view('mcp.authorize', $parameters)
@@ -56,14 +56,14 @@ final class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
+        Password::defaults(fn (): Password => app()->isProduction()
             ? Password::min(12)
                 ->mixedCase()
                 ->letters()
                 ->numbers()
                 ->symbols()
                 ->uncompromised()
-            : null,
+            : Password::min(8),
         );
 
         URL::forceHttps(app()->isProduction());

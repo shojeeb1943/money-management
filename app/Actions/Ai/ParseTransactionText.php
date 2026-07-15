@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Support\Money;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
@@ -22,8 +23,8 @@ final readonly class ParseTransactionText
      */
     public function handle(User $user, Company $company, string $text): array
     {
-        $wallets = $company->wallets()->active()->orderBy('name')->get(['id', 'name']);
-        $categories = $company->categories()->active()->orderBy('name')->get(['id', 'name', 'kind']);
+        $wallets = Wallet::query()->active()->orderBy('name')->get(['id', 'name']);
+        $categories = Category::query()->active()->orderBy('name')->get(['id', 'name', 'kind']);
 
         $prompt = $this->buildPrompt($wallets, $categories);
 
@@ -123,7 +124,11 @@ final readonly class ParseTransactionText
             ->timeout(20)
             ->post(rtrim($baseUrl, '/').'/chat/completions', $body);
 
-        throw_unless($response->successful(), RuntimeException::class, 'The AI provider request failed: '.$response->body());
+        if (! $response->successful()) {
+            Log::warning('AI provider request failed.', ['status' => $response->status(), 'body' => $response->body()]);
+
+            throw new RuntimeException('The AI provider request failed.');
+        }
 
         $content = (string) $response->json('choices.0.message.content');
 
@@ -149,7 +154,11 @@ final readonly class ParseTransactionText
                 ],
             ]);
 
-        throw_unless($response->successful(), RuntimeException::class, 'The AI provider request failed: '.$response->body());
+        if (! $response->successful()) {
+            Log::warning('AI provider request failed.', ['status' => $response->status(), 'body' => $response->body()]);
+
+            throw new RuntimeException('The AI provider request failed.');
+        }
 
         // Claude models with adaptive thinking enabled (e.g. claude-sonnet-5) return a
         // "thinking" content block before the "text" block, so index 0 isn't reliable.

@@ -19,8 +19,8 @@ final class TransferController extends Controller
     {
         $createTransfer->handle(
             $current_company,
-            Wallet::query()->forCompany($current_company)->whereKey($request->validated('wallet_id'))->firstOrFail(),
-            Wallet::query()->forCompany($current_company)->whereKey($request->validated('counter_wallet_id'))->firstOrFail(),
+            Wallet::query()->whereKey($request->validated('wallet_id'))->firstOrFail(),
+            Wallet::query()->whereKey($request->validated('counter_wallet_id'))->firstOrFail(),
             $request->validated('amount'),
             Date::parse($request->validated('date')),
             $request->validated('description'),

@@ -7,6 +7,7 @@ namespace App\Mcp\Tools;
 use App\Actions\Wallets\CreateWallet as CreateWalletAction;
 use App\Enums\WalletType;
 use App\Mcp\Concerns\InteractsWithCompany;
+use App\Models\Wallet;
 use App\Support\Money;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\Rule;
@@ -46,18 +47,17 @@ final class CreateWallet extends Tool
 
         $company = $this->company($request);
 
-        if ($company->wallets()->where('name', (string) $request->get('name'))->exists()) {
-            return Response::error('A wallet with this name already exists in the company.');
+        if (Wallet::query()->where('name', (string) $request->get('name'))->exists()) {
+            return Response::error('A wallet with this name already exists.');
         }
 
         $wallet = $this->createWallet->handle(
-            $company,
             (string) $request->get('name'),
             WalletType::from((string) $request->get('type')),
             $request->get('account_number'),
             openingBalance: $request->get('opening_balance') !== null ? Money::toMinorUnits((string) $request->get('opening_balance')) : 0,
             creator: $this->authenticatedUser($request),
-            currency: (string) $request->get('currency', $company->currency),
+            currency: (string) $request->get('currency', 'BDT'),
         );
 
         return Response::text(sprintf(

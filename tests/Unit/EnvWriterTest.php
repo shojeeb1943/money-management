@@ -79,3 +79,9 @@ test('writes an empty value for null', function (): void {
 
     expect(file_get_contents($this->path))->toContain("DB_PASSWORD=\n");
 });
+
+test('rejects values containing newlines to prevent env injection', function (): void {
+    file_put_contents($this->path, "DB_PASSWORD=\n");
+
+    (new EnvWriter)->set(['DB_PASSWORD' => "secret\nAPP_DEBUG=true"], $this->path);
+})->throws(RuntimeException::class, 'Environment values cannot contain newlines.');

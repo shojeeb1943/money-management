@@ -36,7 +36,7 @@ final class IncomeStatementReport
             ->selectRaw('category_id, COALESCE(SUM(amount), 0) as total')
             ->pluck('total', 'category_id');
 
-        $categories = Category::query()->forCompany($company)->get();
+        $categories = Category::query()->get();
         $amountsByCategory = $categories->mapWithKeys(
             fn (Category $category): array => [$category->id => (int) ($totals[$category->id] ?? 0)],
         );

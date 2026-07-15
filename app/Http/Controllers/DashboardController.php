@@ -8,6 +8,7 @@ use App\Actions\Budgets\EvaluateBudgetAlert;
 use App\Models\Budget;
 use App\Models\Company;
 use App\Models\Transaction;
+use App\Models\Wallet;
 use App\Services\Reports\CashFlowReport;
 use App\Services\Reports\IncomeStatementReport;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ final class DashboardController extends Controller
 
         $periodStatement = $incomeStatement->generate($current_company, $from, $to);
         $periodCashFlow = $cashFlow->generate($current_company, $from, $to);
-        $totalCash = (int) $current_company->wallets()->active()->where('currency', $current_company->currency)->sum('cached_balance');
+        $totalCash = (int) Wallet::query()->active()->where('currency', $current_company->currency)->sum('cached_balance');
 
         $trend = collect(range(5, 0))->map(function (int $monthsAgo) use ($current_company, $incomeStatement, $timezone): array {
             $month = now($timezone)->subMonthsNoOverflow($monthsAgo);

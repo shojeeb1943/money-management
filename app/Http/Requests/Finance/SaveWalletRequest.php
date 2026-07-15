@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Finance;
 
 use App\Enums\WalletType;
-use App\Http\Requests\Concerns\ResolvesCurrentCompany;
 use App\Models\Wallet;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,8 +12,6 @@ use Illuminate\Validation\Rule;
 
 final class SaveWalletRequest extends FormRequest
 {
-    use ResolvesCurrentCompany;
-
     public function authorize(): bool
     {
         return true;
@@ -31,7 +28,6 @@ final class SaveWalletRequest extends FormRequest
             'name' => [
                 'required', 'string', 'max:100',
                 Rule::unique('wallets', 'name')
-                    ->where('company_id', $this->company()->id)
                     ->ignore($wallet instanceof Wallet ? $wallet->id : null),
             ],
             'type' => ['required', Rule::enum(WalletType::class)],

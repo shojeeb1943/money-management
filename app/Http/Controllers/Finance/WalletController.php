@@ -27,7 +27,7 @@ final class WalletController extends Controller
     public function index(Request $request, Company $current_company): Response
     {
         return Inertia::render('wallets/index', [
-            'wallets' => $current_company->wallets()
+            'wallets' => Wallet::query()
                 ->oldest('archived_at')
                 ->orderBy('name')
                 ->get()
@@ -39,7 +39,7 @@ final class WalletController extends Controller
     public function show(Request $request, Company $current_company, Wallet $wallet): Response
     {
 
-        $entries = $wallet->company->transactions()
+        $entries = Transaction::query()
             ->posted()
             ->where(fn ($query) => $query
                 ->where('wallet_id', $wallet->id)
@@ -60,7 +60,7 @@ final class WalletController extends Controller
             return $transaction->signedAmount();
         };
 
-        $newerDelta = $wallet->company->transactions()
+        $newerDelta = Transaction::query()
             ->posted()
             ->where(fn ($query) => $query
                 ->where('wallet_id', $wallet->id)
@@ -105,7 +105,6 @@ final class WalletController extends Controller
     public function store(SaveWalletRequest $request, Company $current_company, CreateWallet $createWallet): RedirectResponse
     {
         $createWallet->handle(
-            $current_company,
             $request->validated('name'),
             WalletType::from($request->validated('type')),
             $request->validated('account_number'),
@@ -162,6 +161,7 @@ final class WalletController extends Controller
         $transaction = $reconcileWallet->handle(
             $wallet,
             Money::toMinorUnits((string) $validated['actual_balance']),
+            $current_company,
             $request->user(),
         );
 

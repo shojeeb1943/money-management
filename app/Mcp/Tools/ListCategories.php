@@ -34,7 +34,7 @@ final class ListCategories extends Tool
 
         $company = $this->company($request);
 
-        $categories = $company->categories()
+        $categories = Category::query()
             ->when($request->get('kind'), fn ($query, $kind) => $query->where('kind', $kind))
             ->when($request->get('include_archived') !== true, fn ($query) => $query->active())
             ->orderBy('kind')
