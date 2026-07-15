@@ -34,7 +34,7 @@ if [ ! -f "$INIT_FLAG" ]; then
     fi
 
     if [ ! -f storage/oauth-private.key ]; then
-        php artisan passport:keys
+        php artisan passport:keys || echo "WARNING: passport:keys failed, continuing without OAuth keys"
     fi
 
     touch "$INIT_FLAG"
@@ -61,10 +61,10 @@ php artisan moneta:install \
 
 [ -f storage/installed ] || touch storage/installed
 
-php artisan optimize:clear
-php artisan optimize
+php artisan optimize:clear || true
+php artisan optimize || echo "WARNING: optimize failed (likely a bad route/config cache) — continuing without cache"
 
-cron
+cron || echo "WARNING: cron failed to start — scheduled tasks won't run, but the app will still serve requests"
 
 echo "Moneta is running."
 
