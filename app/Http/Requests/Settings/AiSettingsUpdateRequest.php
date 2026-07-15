@@ -18,6 +18,11 @@ final class AiSettingsUpdateRequest extends FormRequest
         $isCustom = $provider === 'custom';
         $models = config("ai.providers.{$provider}.models", []);
 
+        $fallbackProvider = (string) $this->input('fallback_provider');
+        $hasFallback = $fallbackProvider !== '';
+        $isFallbackCustom = $fallbackProvider === 'custom';
+        $fallbackModels = config("ai.providers.{$fallbackProvider}.models", []);
+
         return [
             'provider' => ['required', Rule::in(array_keys(config('ai.providers')))],
             'model' => $isCustom
@@ -25,6 +30,20 @@ final class AiSettingsUpdateRequest extends FormRequest
                 : ['required', Rule::in($models)],
             'base_url' => [Rule::requiredIf($isCustom), 'nullable', 'url', 'max:255'],
             'api_key' => ['nullable', 'string', 'max:500'],
+
+            'fallback_provider' => ['nullable', Rule::in(array_keys(config('ai.providers')))],
+            'fallback_model' => $isFallbackCustom
+                ? [Rule::requiredIf($hasFallback), 'nullable', 'string', 'max:100']
+                : [Rule::requiredIf($hasFallback), 'nullable', Rule::in($fallbackModels)],
+            'fallback_base_url' => [Rule::requiredIf($hasFallback && $isFallbackCustom), 'nullable', 'url', 'max:255'],
+            'fallback_api_key' => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('fallback_provider') === '') {
+            $this->merge(['fallback_provider' => null]);
+        }
     }
 }

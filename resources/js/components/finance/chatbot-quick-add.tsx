@@ -72,6 +72,16 @@ export default function ChatbotQuickAdd({ wallets, categories }: Props) {
                     'Could not parse that. Check Settings → AI, or try rephrasing.',
                 );
             },
+            onHttpException: () => {
+                setError('Too many requests — wait a moment and try again.');
+            },
+            onNetworkError: () => {
+                setError(
+                    'Network error — check your connection and try again.',
+                );
+            },
+        }).catch(() => {
+            // onError/onHttpException/onNetworkError above already surfaced a message.
         });
     };
 
@@ -125,7 +135,7 @@ export default function ChatbotQuickAdd({ wallets, categories }: Props) {
 
             {result ? (
                 <TransactionFormSheet
-                    key={`${result.type}-${result.amount}-${result.date}-${result.description}`}
+                    key={`${result.type}-${result.amount}-${result.date}-${result.description}-${result.walletId}-${result.counterWalletId}-${result.categoryId}`}
                     mode={result.type}
                     wallets={wallets}
                     categories={categories}

@@ -28,18 +28,41 @@ type Props = {
     model: string | null;
     baseUrl: string | null;
     hasApiKey: boolean;
+    fallbackProvider: string | null;
+    fallbackModel: string | null;
+    fallbackBaseUrl: string | null;
+    hasFallbackApiKey: boolean;
 };
 
-export default function Ai({
+const NONE = '__none__';
+
+function ProviderFields({
+    idPrefix,
+    namePrefix,
+    label,
     providers,
+    allowNone,
     provider,
     model,
     baseUrl,
     hasApiKey,
-}: Props) {
+    errors,
+}: {
+    idPrefix: string;
+    namePrefix: string;
+    label: string;
+    providers: Record<string, ProviderConfig>;
+    allowNone: boolean;
+    provider: string | null;
+    model: string | null;
+    baseUrl: string | null;
+    hasApiKey: boolean;
+    errors: Record<string, string | undefined>;
+}) {
     const [selectedProvider, setSelectedProvider] = useState(
-        provider ?? Object.keys(providers)[0],
+        provider ?? (allowNone ? NONE : Object.keys(providers)[0]),
     );
+    const isNone = allowNone && selectedProvider === NONE;
     const isCustom = selectedProvider === 'custom';
     const models = providers[selectedProvider]?.models ?? [];
     const [selectedModel, setSelectedModel] = useState(
@@ -55,6 +78,120 @@ export default function Ai({
     };
 
     return (
+        <div className="space-y-6">
+            <div className="grid gap-2">
+                <Label>{label}</Label>
+                <Select value={selectedProvider} onValueChange={changeProvider}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {allowNone ? (
+                            <SelectItem value={NONE}>None</SelectItem>
+                        ) : null}
+                        {Object.entries(providers).map(([key, config]) => (
+                            <SelectItem key={key} value={key}>
+                                {config.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <input
+                    type="hidden"
+                    name={`${namePrefix}provider`}
+                    value={isNone ? '' : selectedProvider}
+                />
+                <InputError message={errors[`${namePrefix}provider`]} />
+            </div>
+
+            {!isNone ? (
+                <>
+                    <div className="grid gap-2">
+                        <Label htmlFor={`${idPrefix}-model`}>Model</Label>
+                        {isCustom ? (
+                            <Input
+                                id={`${idPrefix}-model`}
+                                name={`${namePrefix}model`}
+                                defaultValue={model ?? ''}
+                                placeholder="e.g. my-custom-model"
+                            />
+                        ) : (
+                            <>
+                                <Select
+                                    value={selectedModel}
+                                    onValueChange={setSelectedModel}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {models.map((m) => (
+                                            <SelectItem key={m} value={m}>
+                                                {m}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <input
+                                    type="hidden"
+                                    name={`${namePrefix}model`}
+                                    value={selectedModel}
+                                />
+                            </>
+                        )}
+                        <InputError message={errors[`${namePrefix}model`]} />
+                    </div>
+
+                    {isCustom ? (
+                        <div className="grid gap-2">
+                            <Label htmlFor={`${idPrefix}-base-url`}>
+                                Base URL
+                            </Label>
+                            <Input
+                                id={`${idPrefix}-base-url`}
+                                name={`${namePrefix}base_url`}
+                                defaultValue={baseUrl ?? ''}
+                                placeholder="https://api.example.com/v1"
+                            />
+                            <InputError
+                                message={errors[`${namePrefix}base_url`]}
+                            />
+                        </div>
+                    ) : null}
+
+                    <div className="grid gap-2">
+                        <Label htmlFor={`${idPrefix}-api-key`}>API key</Label>
+                        <Input
+                            id={`${idPrefix}-api-key`}
+                            name={`${namePrefix}api_key`}
+                            type="password"
+                            autoComplete="off"
+                            placeholder={
+                                hasApiKey
+                                    ? '•••• saved — leave blank to keep it'
+                                    : 'Paste your API key'
+                            }
+                        />
+                        <InputError message={errors[`${namePrefix}api_key`]} />
+                    </div>
+                </>
+            ) : null}
+        </div>
+    );
+}
+
+export default function Ai({
+    providers,
+    provider,
+    model,
+    baseUrl,
+    hasApiKey,
+    fallbackProvider,
+    fallbackModel,
+    fallbackBaseUrl,
+    hasFallbackApiKey,
+}: Props) {
+    return (
         <>
             <div className="space-y-6">
                 <Heading
@@ -66,108 +203,42 @@ export default function Ai({
                 <Form
                     {...AiController.update.form()}
                     options={{ preserveScroll: true }}
-                    className="space-y-6"
+                    className="space-y-8"
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label>Provider</Label>
-                                <Select
-                                    value={selectedProvider}
-                                    onValueChange={changeProvider}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select provider" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {Object.entries(providers).map(
-                                            ([key, config]) => (
-                                                <SelectItem
-                                                    key={key}
-                                                    value={key}
-                                                >
-                                                    {config.label}
-                                                </SelectItem>
-                                            ),
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                <input
-                                    type="hidden"
-                                    name="provider"
-                                    value={selectedProvider}
+                            <ProviderFields
+                                idPrefix="ai"
+                                namePrefix=""
+                                label="Provider"
+                                providers={providers}
+                                allowNone={false}
+                                provider={provider}
+                                model={model}
+                                baseUrl={baseUrl}
+                                hasApiKey={hasApiKey}
+                                errors={errors}
+                            />
+
+                            <div className="space-y-6 border-t pt-6">
+                                <p className="text-sm text-muted-foreground">
+                                    Fallback — used automatically if the primary
+                                    provider fails (e.g. no balance or a rate
+                                    limit).
+                                </p>
+
+                                <ProviderFields
+                                    idPrefix="ai-fallback"
+                                    namePrefix="fallback_"
+                                    label="Fallback provider"
+                                    providers={providers}
+                                    allowNone
+                                    provider={fallbackProvider}
+                                    model={fallbackModel}
+                                    baseUrl={fallbackBaseUrl}
+                                    hasApiKey={hasFallbackApiKey}
+                                    errors={errors}
                                 />
-                                <InputError message={errors.provider} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="ai-model">Model</Label>
-                                {isCustom ? (
-                                    <Input
-                                        id="ai-model"
-                                        name="model"
-                                        defaultValue={model ?? ''}
-                                        placeholder="e.g. my-custom-model"
-                                    />
-                                ) : (
-                                    <>
-                                        <Select
-                                            value={selectedModel}
-                                            onValueChange={setSelectedModel}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select model" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {models.map((m) => (
-                                                    <SelectItem
-                                                        key={m}
-                                                        value={m}
-                                                    >
-                                                        {m}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <input
-                                            type="hidden"
-                                            name="model"
-                                            value={selectedModel}
-                                        />
-                                    </>
-                                )}
-                                <InputError message={errors.model} />
-                            </div>
-
-                            {isCustom ? (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="ai-base-url">
-                                        Base URL
-                                    </Label>
-                                    <Input
-                                        id="ai-base-url"
-                                        name="base_url"
-                                        defaultValue={baseUrl ?? ''}
-                                        placeholder="https://api.example.com/v1"
-                                    />
-                                    <InputError message={errors.base_url} />
-                                </div>
-                            ) : null}
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="ai-api-key">API key</Label>
-                                <Input
-                                    id="ai-api-key"
-                                    name="api_key"
-                                    type="password"
-                                    autoComplete="off"
-                                    placeholder={
-                                        hasApiKey
-                                            ? '•••• saved — leave blank to keep it'
-                                            : 'Paste your API key'
-                                    }
-                                />
-                                <InputError message={errors.api_key} />
                             </div>
 
                             <Button disabled={processing}>Save</Button>

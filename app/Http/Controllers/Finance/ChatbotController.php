@@ -10,6 +10,7 @@ use App\Http\Requests\Finance\ParseChatbotTextRequest;
 use App\Models\Company;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
+use Throwable;
 
 final class ChatbotController extends Controller
 {
@@ -19,6 +20,10 @@ final class ChatbotController extends Controller
             $result = $parseTransactionText->handle($request->user(), $current_company, $request->validated('text'));
         } catch (RuntimeException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json(['message' => 'The AI provider is unavailable right now. Try again in a moment.'], 422);
         }
 
         return response()->json($result);

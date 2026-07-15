@@ -65,7 +65,14 @@ final class UpdateTransaction extends Tool
             ? $this->category($company, $request->get('category'), $transaction->type->categoryKind())
             : $transaction->category;
 
-        $previousAmount = $transaction->amount;
+        $before = [
+            'wallet_id' => $transaction->wallet_id,
+            'category_id' => $transaction->category_id,
+            'amount' => $transaction->amount,
+            'date' => $transaction->date->toDateString(),
+            'description' => $transaction->description,
+            'reference' => $transaction->reference,
+        ];
 
         try {
             $this->updateTransaction->handle(
@@ -82,7 +89,8 @@ final class UpdateTransaction extends Tool
         }
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'updated', $transaction, [
-            'amount' => ['from' => $previousAmount, 'to' => $transaction->refresh()->amount],
+            'amount' => ['from' => $before['amount'], 'to' => $transaction->refresh()->amount],
+            'before' => $before,
             'via' => 'mcp',
         ]);
 

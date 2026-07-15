@@ -21,10 +21,12 @@ use Illuminate\Support\Carbon;
  * @property int $auditable_id
  * @property array<string, mixed>|null $changes
  * @property Carbon $created_at
+ * @property Carbon|null $restored_at
+ * @property int|null $restored_by
  * @property-read Company $company
  * @property-read User|null $user
  */
-#[Fillable(['company_id', 'user_id', 'action', 'auditable_type', 'auditable_id', 'changes', 'created_at'])]
+#[Fillable(['company_id', 'user_id', 'action', 'auditable_type', 'auditable_id', 'changes', 'created_at', 'restored_at', 'restored_by'])]
 #[WithoutTimestamps]
 final class AuditLog extends Model
 {
@@ -54,6 +56,7 @@ final class AuditLog extends Model
         return [
             'changes' => 'array',
             'created_at' => 'datetime',
+            'restored_at' => 'datetime',
         ];
     }
 }

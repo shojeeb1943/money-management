@@ -26,6 +26,10 @@ final class AiController extends Controller
             'model' => $user->ai_model,
             'baseUrl' => $user->ai_base_url,
             'hasApiKey' => filled($user->ai_api_key),
+            'fallbackProvider' => $user->ai_fallback_provider,
+            'fallbackModel' => $user->ai_fallback_model,
+            'fallbackBaseUrl' => $user->ai_fallback_base_url,
+            'hasFallbackApiKey' => filled($user->ai_fallback_api_key),
         ]);
     }
 
@@ -36,14 +40,25 @@ final class AiController extends Controller
     {
         $user = $request->user();
 
+        $fallbackProvider = $request->validated('fallback_provider');
+
         $user->fill([
             'ai_provider' => $request->validated('provider'),
             'ai_model' => $request->validated('model'),
             'ai_base_url' => $request->validated('provider') === 'custom' ? $request->validated('base_url') : null,
+            'ai_fallback_provider' => $fallbackProvider,
+            'ai_fallback_model' => $fallbackProvider !== null ? $request->validated('fallback_model') : null,
+            'ai_fallback_base_url' => $fallbackProvider === 'custom' ? $request->validated('fallback_base_url') : null,
         ]);
 
         if ($request->filled('api_key')) {
             $user->ai_api_key = $request->validated('api_key');
+        }
+
+        if ($fallbackProvider === null) {
+            $user->ai_fallback_api_key = null;
+        } elseif ($request->filled('fallback_api_key')) {
+            $user->ai_fallback_api_key = $request->validated('fallback_api_key');
         }
 
         $user->save();

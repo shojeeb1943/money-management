@@ -55,6 +55,7 @@ Route::prefix('{current_company}')
         Route::get('reports/cash-flow', [ReportController::class, 'cashFlow'])->name('reports.cash-flow');
 
         Route::get('audit', [AuditLogController::class, 'index'])->name('audit.index');
+        Route::post('audit/{audit_log}/restore', [AuditLogController::class, 'restore'])->name('audit.restore');
 
         Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
         Route::put('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');

@@ -167,6 +167,7 @@ final class WalletController extends Controller
 
         AuditLogger::log($current_company, $request->user(), 'reconciled', $wallet, [
             'adjustment' => $transaction->amount ?? 0,
+            'transaction_id' => $transaction?->id,
         ]);
 
         Inertia::flash('toast', $transaction instanceof Transaction

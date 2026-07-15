@@ -82,6 +82,14 @@ final class Company extends Model
     }
 
     /**
+     * @return HasMany<AuditLog, $this>
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    /**
      * Get the route key for the model.
      */
     public function getRouteKeyName(): string

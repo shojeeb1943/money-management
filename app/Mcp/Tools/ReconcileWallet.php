@@ -50,6 +50,7 @@ final class ReconcileWallet extends Tool
 
         AuditLogger::log($company, $this->authenticatedUser($request), 'reconciled', $wallet, [
             'adjustment' => $transaction->amount ?? 0,
+            'transaction_id' => $transaction?->id,
             'via' => 'mcp',
         ]);
 

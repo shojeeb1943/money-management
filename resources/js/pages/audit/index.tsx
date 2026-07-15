@@ -1,4 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import ConfirmDialog from '@/components/confirm-dialog';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,8 +12,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { index, restore } from '@/routes/audit';
 import type { SimplePagination } from '@/types';
-import { index } from '@/routes/audit';
 
 type LogRow = {
     id: number;
@@ -22,6 +24,8 @@ type LogRow = {
     viaAi: boolean;
     changes: Record<string, unknown> | null;
     createdAt: string;
+    restoredAt: string | null;
+    canRestore: boolean;
 };
 
 type Props = {
@@ -31,10 +35,26 @@ type Props = {
 
 export default function AuditIndex({ logs, pagination }: Props) {
     const { currentCompany } = usePage().props;
+    const [restoring, setRestoring] = useState<LogRow | null>(null);
 
     if (!currentCompany) {
         return null;
     }
+
+    const confirmRestore = () => {
+        if (!restoring) {
+            return;
+        }
+
+        router.post(
+            restore.url({
+                current_company: currentCompany.slug,
+                audit_log: restoring.id,
+            }),
+            {},
+            { preserveScroll: true },
+        );
+    };
 
     return (
         <>
@@ -54,6 +74,7 @@ export default function AuditIndex({ logs, pagination }: Props) {
                             <TableHead>Action</TableHead>
                             <TableHead>Subject</TableHead>
                             <TableHead>Details</TableHead>
+                            <TableHead />
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -86,13 +107,28 @@ export default function AuditIndex({ logs, pagination }: Props) {
                                         ? JSON.stringify(log.changes)
                                         : '—'}
                                 </TableCell>
+                                <TableCell className="text-right whitespace-nowrap">
+                                    {log.restoredAt ? (
+                                        <Badge variant="outline">
+                                            Restored
+                                        </Badge>
+                                    ) : log.canRestore ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setRestoring(log)}
+                                        >
+                                            Restore
+                                        </Button>
+                                    ) : null}
+                                </TableCell>
                             </TableRow>
                         ))}
 
                         {logs.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="py-8 text-center text-muted-foreground"
                                 >
                                     No activity recorded yet.
@@ -131,6 +167,15 @@ export default function AuditIndex({ logs, pagination }: Props) {
                     </div>
                 ) : null}
             </div>
+
+            <ConfirmDialog
+                title="Restore this change?"
+                description="This reverses the change and posts a new audit entry for the restore itself."
+                confirmLabel="Restore"
+                open={restoring !== null}
+                onOpenChange={(open) => !open && setRestoring(null)}
+                onConfirm={confirmRestore}
+            />
         </>
     );
 }

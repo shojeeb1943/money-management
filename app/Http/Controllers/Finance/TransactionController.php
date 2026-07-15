@@ -108,7 +108,14 @@ final class TransactionController extends Controller
     public function update(SaveTransactionRequest $request, Company $current_company, Transaction $transaction, UpdateTransaction $updateTransaction): RedirectResponse
     {
 
-        $previousAmount = $transaction->amount;
+        $before = [
+            'wallet_id' => $transaction->wallet_id,
+            'category_id' => $transaction->category_id,
+            'amount' => $transaction->amount,
+            'date' => $transaction->date->toDateString(),
+            'description' => $transaction->description,
+            'reference' => $transaction->reference,
+        ];
 
         $updateTransaction->handle(
             $transaction,
@@ -123,7 +130,8 @@ final class TransactionController extends Controller
         );
 
         AuditLogger::log($current_company, $request->user(), 'updated', $transaction, [
-            'amount' => ['from' => $previousAmount, 'to' => $transaction->refresh()->amount],
+            'amount' => ['from' => $before['amount'], 'to' => $transaction->refresh()->amount],
+            'before' => $before,
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Transaction updated.')]);
@@ -148,7 +156,10 @@ final class TransactionController extends Controller
 
     private function recordedMessage(Transaction $transaction, ?Category $category, Company $current_company): string
     {
-        $parts = array_filter([$transaction->wallet->name, $category?->name]);
+        $parts = array_filter(
+            [$transaction->wallet->name, $category?->name],
+            fn (?string $value): bool => $value !== null && $value !== '',
+        );
 
         return sprintf(
             '%s of %s recorded — %s (%s).',
