@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 test('ai settings page is displayed', function (): void {
     $user = User::factory()->create();
@@ -43,6 +44,25 @@ test('a blank api key does not overwrite the stored key', function (): void {
 
     expect($user->refresh()->ai_api_key)->toBe('secret-key')
         ->and($user->ai_model)->toBe('gemini-2.0-flash-lite');
+});
+
+test('a new api key can be saved even if the previously stored one is undecryptable', function (): void {
+    $user = User::factory()->create([
+        'ai_provider' => 'google',
+        'ai_model' => 'gemini-2.5-flash',
+        'ai_api_key' => 'secret-key',
+    ]);
+
+    // Simulate a value encrypted under a since-rotated APP_KEY.
+    DB::table('users')->where('id', $user->id)->update(['ai_api_key' => 'not-valid-ciphertext']);
+
+    $this->actingAs($user)->patch(route('ai.update'), [
+        'provider' => 'google',
+        'model' => 'gemini-2.5-flash',
+        'api_key' => 'new-key',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('ai.edit'));
+
+    expect($user->refresh()->ai_api_key)->toBe('new-key');
 });
 
 test('the custom provider requires a base url', function (): void {

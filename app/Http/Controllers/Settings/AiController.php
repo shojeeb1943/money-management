@@ -54,12 +54,14 @@ final class AiController extends Controller
         ]);
 
         if ($request->filled('api_key')) {
+            $this->forgetUndecryptableValue($user, 'ai_api_key');
             $user->ai_api_key = $request->validated('api_key');
         }
 
         if ($fallbackProvider === null) {
             $user->ai_fallback_api_key = null;
         } elseif ($request->filled('fallback_api_key')) {
+            $this->forgetUndecryptableValue($user, 'ai_fallback_api_key');
             $user->ai_fallback_api_key = $request->validated('fallback_api_key');
         }
 
@@ -80,6 +82,20 @@ final class AiController extends Controller
             return filled($user->{$attribute});
         } catch (DecryptException) {
             return false;
+        }
+    }
+
+    /**
+     * When overwriting an encrypted attribute, Eloquent's dirty-check decrypts the
+     * previously stored ciphertext to compare it against the new value. If that old
+     * value was encrypted under a since-rotated APP_KEY, the comparison itself throws.
+     * Clearing it first (and syncing "original") avoids that comparison entirely.
+     */
+    private function forgetUndecryptableValue(User $user, string $attribute): void
+    {
+        if (! $this->hasDecryptableValue($user, $attribute)) {
+            $user->{$attribute} = null;
+            $user->syncOriginalAttribute($attribute);
         }
     }
 }
