@@ -255,6 +255,7 @@ export default function BudgetsIndex({ budgets, categories }: Props) {
                                     <Select
                                         value={period}
                                         onValueChange={setPeriod}
+                                        disabled={Boolean(editing)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />

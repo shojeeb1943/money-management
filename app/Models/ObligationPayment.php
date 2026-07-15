@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int $company_id
  * @property int $obligation_id
  * @property int $wallet_id
  * @property int $amount
@@ -20,12 +22,15 @@ use Illuminate\Support\Carbon;
  * @property int|null $created_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Company $company
  * @property-read Obligation $obligation
  * @property-read Wallet $wallet
  */
-#[Fillable(['obligation_id', 'wallet_id', 'amount', 'direction', 'date', 'description', 'created_by'])]
+#[Fillable(['company_id', 'obligation_id', 'wallet_id', 'amount', 'direction', 'date', 'description', 'created_by'])]
 final class ObligationPayment extends Model
 {
+    use BelongsToCompany;
+
     /**
      * @return BelongsTo<Obligation, $this>
      */

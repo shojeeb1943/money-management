@@ -7,6 +7,7 @@ namespace App\Actions\Obligations;
 use App\Actions\Transactions\CreateTransaction;
 use App\Enums\ObligationKind;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Obligation;
 use App\Models\User;
@@ -28,6 +29,7 @@ final readonly class CreateObligation
     ): Obligation {
         return DB::transaction(function () use ($company, $kind, $label, $wallet, $amount, $description, $creator): Obligation {
             $obligation = Obligation::query()->create([
+                'company_id' => $company->id,
                 'kind' => $kind,
                 'label' => $label,
                 'wallet_id' => $wallet->id,
@@ -44,18 +46,28 @@ final readonly class CreateObligation
                 ? TransactionType::Expense
                 : TransactionType::Income;
 
+            $category = $this->obligationCategory($txType);
+
             $this->createTransaction->handle(
                 $company,
                 $txType,
                 $wallet,
                 $amount,
                 now($company->timezone),
-                category: null,
+                category: $category,
                 description: sprintf('%s: %s', $kind->label(), $label),
                 creator: $creator,
             );
 
             return $obligation;
         });
+    }
+
+    private function obligationCategory(TransactionType $type): Category
+    {
+        return Category::query()->firstOrCreate(
+            ['kind' => $type->categoryKind(), 'name' => 'Obligation', 'parent_id' => null],
+            ['color' => '#6b7280'],
+        );
     }
 }

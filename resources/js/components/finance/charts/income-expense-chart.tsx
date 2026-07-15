@@ -43,7 +43,7 @@ export default function IncomeExpenseChart({ data }: { data: Point[] }) {
                     axisLine={false}
                     tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
                     tickFormatter={(value: number) =>
-                        `${symbol}${(value / 100000).toFixed(0)}k`
+                        `${symbol}${(value / 1000).toFixed(0)}k`
                     }
                 />
                 <Tooltip

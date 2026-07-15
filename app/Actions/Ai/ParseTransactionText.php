@@ -77,7 +77,7 @@ final readonly class ParseTransactionText
     {
         return $config['style'] === 'anthropic'
             ? $this->callAnthropic($config['baseUrl'], $config['apiKey'], $config['model'], $prompt, $text)
-            : $this->callOpenAiCompatible($config['baseUrl'], $config['apiKey'], $config['model'], $prompt, $text, $config['provider'] !== 'custom');
+            : $this->callOpenAiCompatible($config['baseUrl'], $config['apiKey'], $config['model'], $prompt, $text, in_array($config['provider'], ['openai', 'openrouter'], true));
     }
 
     /**

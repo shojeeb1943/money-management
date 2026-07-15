@@ -24,6 +24,7 @@ final class ObligationController extends Controller
     public function index(Request $request, Company $current_company): Response
     {
         $obligations = Obligation::query()
+            ->forCompany($current_company)
             ->with(['wallet', 'payments'])
             ->orderByDesc('created_at')
             ->get()

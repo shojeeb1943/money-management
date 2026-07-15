@@ -7,6 +7,7 @@ namespace App\Actions\Obligations;
 use App\Actions\Transactions\CreateTransaction;
 use App\Enums\ObligationKind;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Obligation;
 use App\Models\ObligationPayment;
@@ -42,6 +43,7 @@ final readonly class RecordPayment
             $direction = $txType === TransactionType::Income ? 'in' : 'out';
 
             $payment = ObligationPayment::query()->create([
+                'company_id' => $company->id,
                 'obligation_id' => $obligation->id,
                 'wallet_id' => $wallet->id,
                 'amount' => $amount,
@@ -62,12 +64,20 @@ final readonly class RecordPayment
                 $wallet,
                 $amount,
                 $date,
-                category: null,
+                category: $this->obligationCategory($txType),
                 description: $description ?? sprintf('%s payment: %s', $obligation->kind->label(), $obligation->label),
                 creator: $creator,
             );
 
             return $payment;
         });
+    }
+
+    private function obligationCategory(TransactionType $type): Category
+    {
+        return Category::query()->firstOrCreate(
+            ['kind' => $type->categoryKind(), 'name' => 'Obligation', 'parent_id' => null],
+            ['color' => '#6b7280'],
+        );
     }
 }

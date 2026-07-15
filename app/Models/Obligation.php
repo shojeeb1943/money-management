@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\BelongsToCompany;
 use App\Enums\ObligationKind;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,6 +15,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int $company_id
  * @property ObligationKind $kind
  * @property string $label
  * @property int $wallet_id
@@ -25,12 +27,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Company $company
  * @property-read Wallet $wallet
  * @property-read Collection<int, ObligationPayment> $payments
  */
-#[Fillable(['kind', 'label', 'wallet_id', 'amount', 'remaining', 'currency', 'description', 'status', 'archived_at'])]
+#[Fillable(['company_id', 'kind', 'label', 'wallet_id', 'amount', 'remaining', 'currency', 'description', 'status', 'archived_at'])]
 final class Obligation extends Model
 {
+    use BelongsToCompany;
+
     /**
      * @return BelongsTo<Wallet, $this>
      */

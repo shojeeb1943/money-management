@@ -73,7 +73,7 @@ export default function WalletsIndex({ wallets, walletTypes }: Props) {
     };
 
     const total = wallets
-        .filter((wallet) => !wallet.archived && wallet.currency === 'BDT')
+        .filter((wallet) => !wallet.archived && wallet.currency === currentCompany?.currency)
         .reduce((sum, wallet) => sum + wallet.balance, 0);
 
     return (
@@ -92,7 +92,7 @@ export default function WalletsIndex({ wallets, walletTypes }: Props) {
                 </div>
 
                 <div className="text-sm text-muted-foreground">
-                    Total across active BDT wallets:{' '}
+                    Total across active {currentCompany?.currency ?? 'BDT'} wallets:{' '}
                     <Money
                         amount={total}
                         className="font-semibold text-foreground"
