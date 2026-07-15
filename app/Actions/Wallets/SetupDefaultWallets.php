@@ -8,7 +8,7 @@ use App\Enums\WalletType;
 
 final readonly class SetupDefaultWallets
 {
-    private const array DEFAULTS = [
+    private const DEFAULTS = [
         ['Bank', WalletType::Bank, 'landmark', '#2563eb'],
         ['Mobile Wallet', WalletType::MobileBanking, 'smartphone', '#7c3aed'],
         ['Card', WalletType::Card, 'credit-card', '#e11d48'],

@@ -8,7 +8,7 @@ use App\Enums\CategoryKind;
 
 final readonly class SetupDefaultCategories
 {
-    private const array DEFAULTS = [
+    private const DEFAULTS = [
         CategoryKind::Income->value => [
             ['Sales', 'shopping-cart', '#16a34a'],
             ['Services', 'briefcase', '#0d9488'],

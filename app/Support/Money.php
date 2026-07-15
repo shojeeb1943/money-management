@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 final class Money
 {
-    public const array CURRENCIES = [
+    public const CURRENCIES = [
         'BDT' => '৳',
         'USD' => '$',
         'EUR' => '€',
