@@ -29,6 +29,7 @@ final class AuditLogController extends Controller
                 'action' => $log->action,
                 'subjectType' => class_basename($log->auditable_type),
                 'subjectId' => $log->auditable_id,
+                'viaAi' => ($log->changes['via'] ?? null) === 'mcp',
                 'changes' => $log->changes,
                 'createdAt' => $log->created_at->timezone($current_company->timezone)->format('M j, Y g:i A'),
             ]),

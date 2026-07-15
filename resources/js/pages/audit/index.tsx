@@ -19,6 +19,7 @@ type LogRow = {
     action: string;
     subjectType: string;
     subjectId: number;
+    viaAi: boolean;
     changes: Record<string, unknown> | null;
     createdAt: string;
 };
@@ -61,7 +62,17 @@ export default function AuditIndex({ logs, pagination }: Props) {
                                 <TableCell className="whitespace-nowrap text-muted-foreground">
                                     {log.createdAt}
                                 </TableCell>
-                                <TableCell>{log.userName}</TableCell>
+                                <TableCell>
+                                    {log.userName}
+                                    {log.viaAi ? (
+                                        <Badge
+                                            variant="outline"
+                                            className="ml-2"
+                                        >
+                                            AI
+                                        </Badge>
+                                    ) : null}
+                                </TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">
                                         {log.action}
