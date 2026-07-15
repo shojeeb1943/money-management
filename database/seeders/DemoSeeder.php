@@ -12,7 +12,6 @@ use App\Enums\RecurrenceFrequency;
 use App\Enums\TransactionType;
 use App\Models\Budget;
 use App\Models\Category;
-use App\Models\Company;
 use App\Models\RecurringTransaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -31,18 +30,18 @@ final class DemoSeeder extends Seeder
 
         $company = resolve(CreateCompany::class)->handle($owner, 'Acme Studio');
 
-        $bank = $this->wallet($company, 'Bank');
-        $mobile = $this->wallet($company, 'Mobile Wallet');
-        $card = $this->wallet($company, 'Card');
-        $cash = $this->wallet($company, 'Cash');
+        $bank = $this->wallet('Bank');
+        $mobile = $this->wallet('Mobile Wallet');
+        $card = $this->wallet('Card');
+        $cash = $this->wallet('Cash');
 
-        $commission = $this->category($company, 'Sales');
-        $setupFee = $this->category($company, 'Services');
-        $hosting = $this->category($company, 'Software & Hosting');
-        $marketing = $this->category($company, 'Marketing');
-        $salaries = $this->category($company, 'Salaries');
-        $officeRent = $this->category($company, 'Office Rent');
-        $bankCharges = $this->category($company, 'Bank Charges');
+        $commission = $this->category('Sales');
+        $setupFee = $this->category('Services');
+        $hosting = $this->category('Software & Hosting');
+        $marketing = $this->category('Marketing');
+        $salaries = $this->category('Salaries');
+        $officeRent = $this->category('Office Rent');
+        $bankCharges = $this->category('Bank Charges');
 
         $create = resolve(CreateTransaction::class);
         $transfer = resolve(CreateTransfer::class);
@@ -110,13 +109,13 @@ final class DemoSeeder extends Seeder
         $this->command->info('Demo data seeded. Login: demo@example.com / password');
     }
 
-    private function wallet(Company $company, string $name): Wallet
+    private function wallet(string $name): Wallet
     {
-        return Wallet::query()->forCompany($company)->where('name', $name)->firstOrFail();
+        return Wallet::query()->where('name', $name)->firstOrFail();
     }
 
-    private function category(Company $company, string $name): Category
+    private function category(string $name): Category
     {
-        return Category::query()->forCompany($company)->where('name', $name)->firstOrFail();
+        return Category::query()->where('name', $name)->firstOrFail();
     }
 }

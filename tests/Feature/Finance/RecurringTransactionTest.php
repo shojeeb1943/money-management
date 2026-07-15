@@ -6,15 +6,17 @@ use App\Actions\Companies\CreateCompany;
 use App\Actions\Recurring\ProcessRecurringTransactions;
 use App\Enums\RecurrenceFrequency;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\RecurringTransaction;
 use App\Models\User;
+use App\Models\Wallet;
 
 function recurringSetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $rentCategory = $company->categories()->where('name', 'Office Rent')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $rentCategory = Category::query()->where('name', 'Office Rent')->firstOrFail();
 
     return [$user, $company, $bank, $rentCategory];
 }
@@ -133,7 +135,7 @@ test('an inactive schedule and one past its end date are skipped', function (): 
 
 test('a recurring transfer moves money between wallets', function (): void {
     [$user, $company, $bank] = recurringSetup();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     RecurringTransaction::query()->create([
         'company_id' => $company->id,

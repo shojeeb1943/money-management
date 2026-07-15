@@ -8,21 +8,23 @@ use App\Actions\Transactions\CreateTransfer;
 use App\Actions\Wallets\CreateWallet;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Services\Reports\IncomeStatementReport;
 
 function currencySetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $usdWallet = resolve(CreateWallet::class)->handle($company, 'Payoneer USD', WalletType::Bank, openingBalance: 100_000, currency: 'USD');
+    $usdWallet = resolve(CreateWallet::class)->handle('Payoneer USD', WalletType::Bank, openingBalance: 100_000, currency: 'USD');
 
     return [$user, $company, $usdWallet];
 }
 
 test('a USD wallet tracks balances in its own currency', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
-    $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $commission = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $usdWallet, 50_000, now(), $commission,
@@ -37,7 +39,7 @@ test('a USD wallet tracks balances in its own currency', function (): void {
 
 test('cross-currency transfers are rejected', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
 
     expect(fn () => resolve(CreateTransfer::class)->handle($company, $usdWallet, $bank, 10_000, now()))
         ->toThrow(InvalidArgumentException::class, 'different currencies');
@@ -45,8 +47,8 @@ test('cross-currency transfers are rejected', function (): void {
 
 test('BDT reports exclude foreign-currency activity', function (): void {
     [$user, $company, $usdWallet] = currencySetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $commission = Category::query()->where('name', 'Sales')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 200_000, now(), $commission);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $usdWallet, 999_999, now(), $commission);

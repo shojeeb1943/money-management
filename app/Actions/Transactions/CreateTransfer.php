@@ -32,8 +32,6 @@ final readonly class CreateTransfer
 
         throw_if($from->id === $to->id, InvalidArgumentException::class, 'Cannot transfer to the same wallet.');
 
-        throw_if($from->company_id !== $company->id || $to->company_id !== $company->id, InvalidArgumentException::class, 'Both wallets must belong to the company.');
-
         throw_if($from->currency !== $to->currency, InvalidArgumentException::class, 'Transfers between different currencies are not supported yet.');
 
         return DB::transaction(function () use ($company, $from, $to, $amount, $date, $description, $reference, $creator) {

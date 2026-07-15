@@ -13,7 +13,9 @@ use App\Mcp\Tools\RecordTransaction;
 use App\Mcp\Tools\RecordTransfer;
 use App\Mcp\Tools\SetBudget;
 use App\Mcp\Tools\VoidTransaction;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Passport\ClientRepository;
 
@@ -32,7 +34,7 @@ function mcpCompany(): array
 
 test('record-transaction records an expense and updates the wallet balance', function (): void {
     [$user, $company] = mcpCompany();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
 
     $response = MonetaServer::actingAs($user)->tool(RecordTransaction::class, [
         'type' => 'expense',
@@ -63,8 +65,8 @@ test('record-transaction rejects a category of the wrong kind', function (): voi
 
 test('record-transfer moves money between wallets', function (): void {
     [$user, $company] = mcpCompany();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     $response = MonetaServer::actingAs($user)->tool(RecordTransfer::class, [
         'from_wallet' => 'Bank',
@@ -80,8 +82,8 @@ test('record-transfer moves money between wallets', function (): void {
 
 test('void-transaction restores the wallet balance', function (): void {
     [$user, $company] = mcpCompany();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $income = $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $income = Category::query()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
 
     $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $bank, 50_000, now(), $income, creator: $user,
@@ -98,9 +100,9 @@ test('void-transaction restores the wallet balance', function (): void {
 
 test('get-income-statement reflects recorded transactions', function (): void {
     [$user, $company] = mcpCompany();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $income = $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
-    $expense = $company->categories()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $income = Category::query()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
+    $expense = Category::query()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 200_000, now(), $income, creator: $user);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 75_000, now(), $expense, creator: $user);
@@ -115,9 +117,9 @@ test('get-income-statement reflects recorded transactions', function (): void {
 
 test('list-transactions filters by wallet name', function (): void {
     [$user, $company] = mcpCompany();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
-    $expense = $company->categories()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
+    $expense = Category::query()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 10_000, now(), $expense, creator: $user);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $cash, 20_000, now(), $expense, creator: $user);
@@ -138,7 +140,7 @@ test('create-wallet and set-budget round-trip', function (): void {
         'opening_balance' => '5000',
     ])->assertOk()->assertSee('Payroll Account');
 
-    expect($company->wallets()->where('name', 'Payroll Account')->firstOrFail()->cached_balance)->toBe(500_000);
+    expect(Wallet::query()->where('name', 'Payroll Account')->firstOrFail()->cached_balance)->toBe(500_000);
 
     MonetaServer::actingAs($user)->tool(SetBudget::class, [
         'category' => 'Marketing',

@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Company;
 use App\Models\RecurringTransaction;
 use App\Models\User;
+use App\Models\Wallet;
 use Database\Seeders\DemoSeeder;
 
 test('the demo seeder produces a fully reconciled set of books', function (): void {
@@ -13,7 +14,7 @@ test('the demo seeder produces a fully reconciled set of books', function (): vo
 
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
 
-    expect($company->wallets()->count())->toBe(4)
+    expect(Wallet::query()->count())->toBe(4)
         ->and($company->transactions()->count())->toBeGreaterThan(20)
         ->and(Budget::query()->forCompany($company)->count())->toBe(2)
         ->and(RecurringTransaction::query()->forCompany($company)->count())->toBe(3);
@@ -27,7 +28,7 @@ test('every finance page renders for the demo owner', function (): void {
     $owner = User::query()->where('email', 'demo@example.com')->firstOrFail();
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
     $slug = ['current_company' => $company->slug];
-    $wallet = $company->wallets()->firstOrFail();
+    $wallet = Wallet::query()->firstOrFail();
 
     foreach ([
         route('dashboard', $slug),

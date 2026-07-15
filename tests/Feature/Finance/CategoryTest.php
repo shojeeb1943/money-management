@@ -10,6 +10,7 @@ use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 
 function categoryCompany(User $user): Company
 {
@@ -25,7 +26,7 @@ test('a category can be created with a sub-category', function (): void {
         'kind' => CategoryKind::Expense->value,
     ])->assertRedirect();
 
-    $parent = $company->categories()->where('name', 'Software')->firstOrFail();
+    $parent = Category::query()->where('name', 'Software')->firstOrFail();
 
     $this->actingAs($user)->post(route('categories.store', ['current_company' => $company->slug]), [
         'name' => 'Licenses',
@@ -33,7 +34,7 @@ test('a category can be created with a sub-category', function (): void {
         'parent_id' => $parent->id,
     ])->assertRedirect();
 
-    $child = $company->categories()->where('name', 'Licenses')->firstOrFail();
+    $child = Category::query()->where('name', 'Licenses')->firstOrFail();
 
     expect($child->parent_id)->toBe($parent->id)
         ->and($child->kind->value)->toBe('expense');
@@ -43,8 +44,8 @@ test('categories cannot nest more than two levels', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $parent = resolve(CreateCategory::class)->handle($company, 'Level 1', CategoryKind::Expense);
-    $child = resolve(CreateCategory::class)->handle($company, 'Level 2', CategoryKind::Expense, $parent);
+    $parent = resolve(CreateCategory::class)->handle('Level 1', CategoryKind::Expense);
+    $child = resolve(CreateCategory::class)->handle('Level 2', CategoryKind::Expense, $parent);
 
     $this->actingAs($user)->post(route('categories.store', ['current_company' => $company->slug]), [
         'name' => 'Level 3',
@@ -57,8 +58,8 @@ test('a category with ledger activity cannot be deleted but can be archived', fu
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $category = resolve(CreateCategory::class)->handle($company, 'Hosting Bills', CategoryKind::Expense);
-    $wallet = $company->wallets()->firstOrFail();
+    $category = resolve(CreateCategory::class)->handle('Hosting Bills', CategoryKind::Expense);
+    $wallet = Wallet::query()->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 30_000, now(), $category, 'Server payment');
 
@@ -79,7 +80,7 @@ test('an unused category can be deleted', function (): void {
     $user = User::factory()->create();
     $company = categoryCompany($user);
 
-    $category = resolve(CreateCategory::class)->handle($company, 'Unused', CategoryKind::Income);
+    $category = resolve(CreateCategory::class)->handle('Unused', CategoryKind::Income);
 
     $this->actingAs($user)
         ->delete(route('categories.destroy', ['current_company' => $company->slug, 'category' => $category->id]))

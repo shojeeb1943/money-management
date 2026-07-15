@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Actions\Companies\CreateCompany;
 use App\Enums\TransactionStatus;
 use App\Models\AuditLog;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 
 /**
  * @return array{0: User, 1: Company}
@@ -21,8 +23,8 @@ function restoreSetup(): array
 
 test('restoring a voided transaction un-voids it and restores the wallet balance', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $sales = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $sales = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
         'type' => 'income',
@@ -47,8 +49,8 @@ test('restoring a voided transaction un-voids it and restores the wallet balance
 
 test('restoring a created transaction voids it', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $sales = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $sales = Category::query()->where('name', 'Sales')->firstOrFail();
     $balanceBefore = $bank->cached_balance;
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
@@ -69,9 +71,9 @@ test('restoring a created transaction voids it', function (): void {
 
 test('restoring an updated transaction reverts amount and wallet to their prior values', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
-    $sales = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
+    $sales = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
         'type' => 'income',
@@ -103,7 +105,7 @@ test('restoring an updated transaction reverts amount and wallet to their prior 
 
 test('restoring a reconciliation voids the adjustment transaction it created', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
     $balanceBefore = $bank->cached_balance;
 
     $this->actingAs($user)->post(route('wallets.reconcile', ['current_company' => $company->slug, 'wallet' => $bank->id]), [
@@ -120,8 +122,8 @@ test('restoring a reconciliation voids the adjustment transaction it created', f
 
 test('an already-restored audit entry cannot be restored again', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $sales = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $sales = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
         'type' => 'income',
@@ -143,8 +145,8 @@ test('an already-restored audit entry cannot be restored again', function (): vo
 
 test('a legacy updated entry without a before-snapshot cannot be restored', function (): void {
     [$user, $company] = restoreSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $sales = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $sales = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
         'type' => 'income',

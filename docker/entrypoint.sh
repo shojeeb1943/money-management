@@ -46,9 +46,10 @@ fi
 
 php artisan migrate --force || {
     echo "============================================="
-    echo "  MIGRATION FAILED — schema may be broken"
+    echo "  MIGRATION FAILED — refusing to start with a broken schema"
     echo "  Shell into the container to debug"
     echo "============================================="
+    exit 1
 }
 
 php artisan moneta:install \

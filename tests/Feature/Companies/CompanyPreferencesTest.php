@@ -7,6 +7,7 @@ use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Wallets\CreateWallet;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
+use App\Models\Category;
 use App\Models\User;
 use App\Services\Reports\IncomeStatementReport;
 
@@ -49,8 +50,8 @@ test('reports follow the company currency', function (): void {
 
     $company->update(['currency' => 'USD']);
 
-    $wallet = resolve(CreateWallet::class)->handle($company, 'US Bank', WalletType::Bank, creator: $user);
-    $income = $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
+    $wallet = resolve(CreateWallet::class)->handle('US Bank', WalletType::Bank, creator: $user);
+    $income = Category::query()->where('kind', 'income')->whereNull('parent_id')->firstOrFail();
 
     expect($wallet->currency)->toBe('USD');
 

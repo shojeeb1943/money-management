@@ -6,6 +6,7 @@ namespace App\Actions\Transactions;
 
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
+use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -22,7 +23,9 @@ final readonly class CreateCrossCompanyTransfer
      * @return array{0: Transaction, 1: Transaction}
      */
     public function handle(
+        Company $fromCompany,
         Wallet $from,
+        Company $toCompany,
         Wallet $to,
         int $amount,
         CarbonInterface $date,
@@ -33,34 +36,34 @@ final readonly class CreateCrossCompanyTransfer
 
         throw_if($from->id === $to->id, InvalidArgumentException::class, 'Cannot transfer to the same wallet.');
 
-        throw_if($from->company_id === $to->company_id, InvalidArgumentException::class, 'Use a regular transfer for wallets in the same company.');
+        throw_if($fromCompany->id === $toCompany->id, InvalidArgumentException::class, 'Use a regular transfer for wallets in the same company.');
 
         throw_if($from->currency !== $to->currency, InvalidArgumentException::class, 'Transfers between different currencies are not supported yet.');
 
-        return DB::transaction(function () use ($from, $to, $amount, $date, $description, $creator) {
+        return DB::transaction(function () use ($fromCompany, $from, $toCompany, $to, $amount, $date, $description, $creator) {
             $reference = 'XFER-'.Str::ulid();
 
             $out = Transaction::query()->create([
-                'company_id' => $from->company_id,
+                'company_id' => $fromCompany->id,
                 'type' => TransactionType::CapitalWithdrawal,
                 'wallet_id' => $from->id,
                 'currency' => $from->currency,
                 'amount' => $amount,
                 'date' => $date->toDateString(),
-                'description' => $description ?? "Transfer to {$to->company->name} — {$to->name}",
+                'description' => $description ?? "Transfer to {$toCompany->name} — {$to->name}",
                 'reference' => $reference,
                 'status' => TransactionStatus::Posted,
                 'created_by' => $creator?->id,
             ]);
 
             $in = Transaction::query()->create([
-                'company_id' => $to->company_id,
+                'company_id' => $toCompany->id,
                 'type' => TransactionType::CapitalInvestment,
                 'wallet_id' => $to->id,
                 'currency' => $to->currency,
                 'amount' => $amount,
                 'date' => $date->toDateString(),
-                'description' => $description ?? "Transfer from {$from->company->name} — {$from->name}",
+                'description' => $description ?? "Transfer from {$fromCompany->name} — {$from->name}",
                 'reference' => $reference,
                 'status' => TransactionStatus::Posted,
                 'created_by' => $creator?->id,

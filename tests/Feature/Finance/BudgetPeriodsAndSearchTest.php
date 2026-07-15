@@ -7,14 +7,16 @@ use App\Actions\Companies\CreateCompany;
 use App\Actions\Transactions\CreateTransaction;
 use App\Enums\TransactionType;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 
 function periodSetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $marketing = $company->categories()->where('name', 'Marketing')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $marketing = Category::query()->where('name', 'Marketing')->firstOrFail();
 
     return [$user, $company, $bank, $marketing];
 }
@@ -68,7 +70,7 @@ test('a quarterly and monthly budget can coexist for the same category', functio
 
 test('global search finds transactions, wallets and categories', function (): void {
     [$user, $company, $bank] = periodSetup();
-    $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $commission = Category::query()->where('name', 'Sales')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 100_000, now(), $commission, 'ShopHub settlement');
 

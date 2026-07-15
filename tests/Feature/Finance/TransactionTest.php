@@ -8,7 +8,9 @@ use App\Actions\Transactions\CreateTransfer;
 use App\Actions\Transactions\UpdateTransaction;
 use App\Actions\Transactions\VoidTransaction;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use Inertia\Testing\AssertableInertia;
 
 function setupBooks(): array
@@ -19,9 +21,9 @@ function setupBooks(): array
     return [
         $user,
         $company,
-        $company->wallets()->where('name', 'Bank')->firstOrFail(),
-        $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail(),
-        $company->categories()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail(),
+        Wallet::query()->where('name', 'Bank')->firstOrFail(),
+        Category::query()->where('kind', 'income')->whereNull('parent_id')->firstOrFail(),
+        Category::query()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail(),
     ];
 }
 
@@ -59,7 +61,7 @@ test('a capital withdrawal decreases and an investment increases the wallet', fu
 
 test('a transfer moves balance from source to destination wallet', function (): void {
     [$user, $company, $bank] = setupBooks();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 500_000, now());
     resolve(CreateTransfer::class)->handle($company, $bank, $cash, 200_000, now());
@@ -87,7 +89,7 @@ test('editing a transaction reverses the old amount and applies the new one', fu
 
 test('editing a transaction onto a different wallet moves the balance', function (): void {
     [$user, $company, $bank, $income] = setupBooks();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     $transaction = resolve(CreateTransaction::class)->handle(
         $company, TransactionType::Income, $bank, 100_000, now(), $income,
@@ -127,7 +129,7 @@ test('a category kind mismatch is rejected', function (): void {
 
 test('balances stay consistent after fifty randomized operations', function (): void {
     [$user, $company, $bank, $income, $expense] = setupBooks();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 10_000_000, now());
 
@@ -163,7 +165,7 @@ test('balances stay consistent after fifty randomized operations', function (): 
 
 test('the transactions index reports filtered totals excluding transfers', function (): void {
     [$user, $company, $wallet, $income, $expense] = setupBooks();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $wallet, 100_000, now(), $income, creator: $user);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $wallet, 40_000, now(), $expense, creator: $user);

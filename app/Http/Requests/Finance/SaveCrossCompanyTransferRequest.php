@@ -22,6 +22,8 @@ final class SaveCrossCompanyTransferRequest extends FormRequest
         return [
             'from_wallet_id' => ['required', 'different:to_wallet_id', 'exists:wallets,id'],
             'to_wallet_id' => ['required', 'exists:wallets,id'],
+            'from_company_id' => ['required', 'different:to_company_id', 'exists:companies,id'],
+            'to_company_id' => ['required', 'exists:companies,id'],
             'amount' => ['required', 'integer', 'min:1'],
             'date' => ['required', 'date'],
             'description' => ['nullable', 'string', 'max:255'],

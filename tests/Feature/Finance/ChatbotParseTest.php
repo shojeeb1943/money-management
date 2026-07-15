@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Actions\Companies\CreateCompany;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Support\Facades\Http;
 
 test('chatbot parse resolves the wallet and category from the ai response', function (): void {
@@ -13,8 +15,8 @@ test('chatbot parse resolves the wallet and category from the ai response', func
         'ai_api_key' => 'test-key',
     ]);
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $wallet = $company->wallets()->where('name', 'Cash')->firstOrFail();
-    $category = $company->categories()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Cash')->firstOrFail();
+    $category = Category::query()->where('kind', 'expense')->whereNull('parent_id')->firstOrFail();
 
     Http::fake([
         'api.openai.com/*' => Http::response([
@@ -67,7 +69,7 @@ test('chatbot parse falls back to the secondary provider when the primary fails'
         'ai_fallback_api_key' => 'fallback-key',
     ]);
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $wallet = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     Http::fake([
         'api.openai.com/*' => Http::response('insufficient balance', 402),
@@ -133,7 +135,7 @@ test('chatbot parse falls back when the primary provider connection fails, not j
         'ai_fallback_api_key' => 'fallback-key',
     ]);
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $wallet = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     Http::fake([
         'api.openai.com/*' => fn () => throw new Illuminate\Http\Client\ConnectionException('Connection timed out'),
@@ -170,7 +172,7 @@ test('chatbot parse falls back when the primary provider itself is misconfigured
         'ai_fallback_api_key' => 'fallback-key',
     ]);
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $wallet = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     Http::fake([
         'api.anthropic.com/*' => Http::response([
@@ -205,7 +207,7 @@ test('chatbot parse handles an anthropic response that returns a thinking block 
         'ai_api_key' => 'test-key',
     ]);
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $wallet = $company->wallets()->where('name', 'Cash')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Cash')->firstOrFail();
 
     Http::fake([
         'api.anthropic.com/*' => Http::response([

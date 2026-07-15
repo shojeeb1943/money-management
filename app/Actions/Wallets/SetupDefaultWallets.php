@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Wallets;
 
 use App\Enums\WalletType;
+use App\Models\Wallet;
 
 final readonly class SetupDefaultWallets
 {
@@ -19,6 +20,10 @@ final readonly class SetupDefaultWallets
 
     public function handle(): void
     {
+        if (Wallet::query()->exists()) {
+            return;
+        }
+
         foreach (self::DEFAULTS as [$name, $type, $icon, $color]) {
             $this->createWallet->handle($name, $type, icon: $icon, color: $color);
         }

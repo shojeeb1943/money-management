@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Actions\Companies\CreateCompany;
 use App\Models\AuditLog;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 
 function auditSetup(): array
 {
@@ -16,8 +18,8 @@ function auditSetup(): array
 
 test('an audit trail is written for the transaction lifecycle', function (): void {
     [$user, $company] = auditSetup();
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $commission = Category::query()->where('name', 'Sales')->firstOrFail();
 
     $this->actingAs($user)->post(route('transactions.store', ['current_company' => $company->slug]), [
         'type' => 'income',

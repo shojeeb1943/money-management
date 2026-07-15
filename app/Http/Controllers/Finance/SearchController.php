@@ -45,7 +45,7 @@ final class SearchController extends Controller
                     'date' => $transaction->date->toDateString(),
                     'voided' => ! $transaction->isPosted(),
                 ]),
-            'wallets' => $current_company->wallets()
+            'wallets' => Wallet::query()
                 ->where('name', 'like', sprintf('%%%s%%', $query))
                 ->orderBy('name')
                 ->limit(5)
@@ -57,7 +57,7 @@ final class SearchController extends Controller
                     'balance' => $wallet->cached_balance,
                     'currency' => $wallet->currency,
                 ]),
-            'categories' => $current_company->categories()
+            'categories' => Category::query()
                 ->where('name', 'like', sprintf('%%%s%%', $query))
                 ->orderBy('name')
                 ->limit(5)

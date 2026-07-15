@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\AiSettingsUpdateRequest;
+use App\Models\User;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,11 +27,11 @@ final class AiController extends Controller
             'provider' => $user->ai_provider,
             'model' => $user->ai_model,
             'baseUrl' => $user->ai_base_url,
-            'hasApiKey' => filled($user->ai_api_key),
+            'hasApiKey' => $this->hasDecryptableValue($user, 'ai_api_key'),
             'fallbackProvider' => $user->ai_fallback_provider,
             'fallbackModel' => $user->ai_fallback_model,
             'fallbackBaseUrl' => $user->ai_fallback_base_url,
-            'hasFallbackApiKey' => filled($user->ai_fallback_api_key),
+            'hasFallbackApiKey' => $this->hasDecryptableValue($user, 'ai_fallback_api_key'),
         ]);
     }
 
@@ -66,5 +68,18 @@ final class AiController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('AI settings updated.')]);
 
         return to_route('ai.edit');
+    }
+
+    /**
+     * Treat an undecryptable stored value (e.g. after an APP_KEY rotation) as "not set"
+     * instead of letting the DecryptException bubble into a 500.
+     */
+    private function hasDecryptableValue(User $user, string $attribute): bool
+    {
+        try {
+            return filled($user->{$attribute});
+        } catch (DecryptException) {
+            return false;
+        }
     }
 }

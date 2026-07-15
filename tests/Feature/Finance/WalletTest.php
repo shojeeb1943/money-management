@@ -7,8 +7,10 @@ use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Wallets\CreateWallet;
 use App\Enums\TransactionType;
 use App\Enums\WalletType;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 
 function financeCompany(User $user): Company
 {
@@ -19,16 +21,16 @@ test('a new company gets default BD wallets and categories', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    expect($company->wallets()->pluck('name')->sort()->values()->all())->toBe(['Bank', 'Card', 'Cash', 'Mobile Wallet'])
-        ->and($company->categories()->where('kind', 'income')->count())->toBeGreaterThanOrEqual(2)
-        ->and($company->categories()->where('kind', 'expense')->count())->toBeGreaterThanOrEqual(3);
+    expect(Wallet::query()->pluck('name')->sort()->values()->all())->toBe(['Bank', 'Card', 'Cash', 'Mobile Wallet'])
+        ->and(Category::query()->where('kind', 'income')->count())->toBeGreaterThanOrEqual(2)
+        ->and(Category::query()->where('kind', 'expense')->count())->toBeGreaterThanOrEqual(3);
 });
 
 test('creating a wallet with a positive opening balance caches the balance', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = resolve(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
+    $wallet = resolve(CreateWallet::class)->handle('Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
 
     expect($wallet->opening_balance)->toBe(500_000)
         ->and($wallet->cached_balance)->toBe(500_000)
@@ -39,7 +41,7 @@ test('creating a wallet with a negative opening balance works for credit account
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = resolve(CreateWallet::class)->handle($company, 'Credit Card', WalletType::Card, openingBalance: -120_000);
+    $wallet = resolve(CreateWallet::class)->handle('Credit Card', WalletType::Card, openingBalance: -120_000);
 
     expect($wallet->cached_balance)->toBe(-120_000)
         ->and($wallet->derivedBalance())->toBe(-120_000);
@@ -57,28 +59,15 @@ test('a wallet can be created through the endpoint with a decimal opening balanc
 
     $response->assertRedirect();
 
-    $wallet = $company->wallets()->where('name', 'Rocket')->firstOrFail();
+    $wallet = Wallet::query()->where('name', 'Rocket')->firstOrFail();
 
     expect($wallet->cached_balance)->toBe(150_050);
-});
-
-test('a wallet from another company returns 404 via scoped bindings', function (): void {
-    $owner = User::factory()->create();
-    $company = financeCompany($owner);
-
-    $otherOwner = User::factory()->create();
-    $otherCompany = resolve(CreateCompany::class)->handle($otherOwner, 'Other Business');
-    $foreignWallet = $otherCompany->wallets()->firstOrFail();
-
-    $this->actingAs($owner)
-        ->get(route('wallets.show', ['current_company' => $company->slug, 'wallet' => $foreignWallet->id]))
-        ->assertNotFound();
 });
 
 test('archiving a wallet toggles archived state', function (): void {
     $user = User::factory()->create();
     $company = financeCompany($user);
-    $wallet = $company->wallets()->firstOrFail();
+    $wallet = Wallet::query()->firstOrFail();
 
     $this->actingAs($user)
         ->patch(route('wallets.archive', ['current_company' => $company->slug, 'wallet' => $wallet->id]))
@@ -97,7 +86,7 @@ test('editing the opening balance shifts the cached balance by the difference', 
     $user = User::factory()->create();
     $company = financeCompany($user);
 
-    $wallet = resolve(CreateWallet::class)->handle($company, 'Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
+    $wallet = resolve(CreateWallet::class)->handle('Payroll Account', WalletType::Bank, openingBalance: 500_000, creator: $user);
 
     resolve(CreateTransaction::class)->handle(
         $company,
@@ -105,7 +94,7 @@ test('editing the opening balance shifts the cached balance by the difference', 
         $wallet,
         100_000,
         now(),
-        $company->categories()->where('kind', 'income')->whereNull('parent_id')->firstOrFail(),
+        Category::query()->where('kind', 'income')->whereNull('parent_id')->firstOrFail(),
         creator: $user,
     );
 

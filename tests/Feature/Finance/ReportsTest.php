@@ -9,7 +9,9 @@ use App\Actions\Transactions\CreateTransfer;
 use App\Actions\Transactions\VoidTransaction;
 use App\Enums\CategoryKind;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Services\Reports\BalanceSheetReport;
 use App\Services\Reports\CashFlowReport;
 use App\Services\Reports\IncomeStatementReport;
@@ -19,10 +21,10 @@ function reportSetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $cash = $company->wallets()->where('name', 'Cash')->firstOrFail();
-    $commission = $company->categories()->where('name', 'Sales')->firstOrFail();
-    $hosting = $company->categories()->where('name', 'Software & Hosting')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $cash = Wallet::query()->where('name', 'Cash')->firstOrFail();
+    $commission = Category::query()->where('name', 'Sales')->firstOrFail();
+    $hosting = Category::query()->where('name', 'Software & Hosting')->firstOrFail();
 
     return [$user, $company, $bank, $cash, $commission, $hosting];
 }
@@ -30,7 +32,7 @@ function reportSetup(): array
 test('the income statement respects the period and rolls children into parents', function (): void {
     [$user, $company, $bank, , $commission, $hosting] = reportSetup();
 
-    $vpsChild = resolve(CreateCategory::class)->handle($company, 'VPS', CategoryKind::Expense, $hosting->fresh());
+    $vpsChild = resolve(CreateCategory::class)->handle('VPS', CategoryKind::Expense, $hosting->fresh());
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 500_000, now(), $commission);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 100_000, now(), $hosting);
@@ -88,14 +90,14 @@ test('the cash flow net change equals the wallet balance delta and classifies fi
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 1_000_000, now()->subMonths(2));
 
-    $balancesBefore = $company->wallets()->sum('cached_balance');
+    $balancesBefore = Wallet::query()->sum('cached_balance');
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Income, $bank, 600_000, now(), $commission);
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $cash, 100_000, now(), $hosting);
     resolve(CreateTransfer::class)->handle($company, $bank, $cash, 200_000, now());
     resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalWithdrawal, $bank, 150_000, now());
 
-    $balancesAfter = $company->wallets()->sum('cached_balance');
+    $balancesAfter = Wallet::query()->sum('cached_balance');
 
     $report = resolve(CashFlowReport::class)->generate($company, now()->startOfMonth(), now()->endOfMonth());
 
@@ -122,7 +124,7 @@ test('the category breakdown reports share per category', function (): void {
     [$user, $company, $bank, , $commission, $hosting] = reportSetup();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 75_000, now(), $hosting);
-    $marketing = $company->categories()->where('name', 'Marketing')->firstOrFail();
+    $marketing = Category::query()->where('name', 'Marketing')->firstOrFail();
     resolve(CreateTransaction::class)->handle($company, TransactionType::Expense, $bank, 25_000, now(), $marketing);
 
     $this->actingAs($user)

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Categories;
 
 use App\Enums\CategoryKind;
+use App\Models\Category;
 
 final readonly class SetupDefaultCategories
 {
@@ -28,6 +29,10 @@ final readonly class SetupDefaultCategories
 
     public function handle(): void
     {
+        if (Category::query()->exists()) {
+            return;
+        }
+
         foreach (self::DEFAULTS as $kind => $categories) {
             foreach ($categories as [$name, $icon, $color]) {
                 $this->createCategory->handle($name, CategoryKind::from($kind), icon: $icon, color: $color);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 
 beforeEach(function (): void {
     $this->flag = storage_path('installed');
@@ -27,7 +28,7 @@ test('creating the admin account finishes the installation', function (): void {
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
 
     expect($user->currentCompany->is($company))->toBeTrue()
-        ->and($company->wallets()->count())->toBeGreaterThan(0)
+        ->and(Wallet::query()->count())->toBeGreaterThan(0)
         ->and(file_exists($this->flag))->toBeTrue();
 
     $this->post(route('login.store'), [

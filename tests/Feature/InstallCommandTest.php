@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 
 test('moneta:install with no options uses the default credentials', function (): void {
     $this->artisan('moneta:install')->assertSuccessful();
@@ -32,7 +33,7 @@ test('moneta:install creates the admin account and company', function (): void {
     $company = Company::query()->where('name', 'Acme Studio')->firstOrFail();
 
     expect($user->currentCompany->is($company))->toBeTrue()
-        ->and($company->wallets()->count())->toBeGreaterThan(0);
+        ->and(Wallet::query()->count())->toBeGreaterThan(0);
 
     $this->post(route('login.store'), [
         'email' => 'admin@example.com',

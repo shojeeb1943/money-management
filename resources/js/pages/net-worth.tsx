@@ -64,7 +64,21 @@ export default function NetWorthPage({
 }: Props) {
     const [transferOpen, setTransferOpen] = useState(false);
     const [fromWalletId, setFromWalletId] = useState<string>('');
+    const [fromCompanyId, setFromCompanyId] = useState<string>('');
     const [toWalletId, setToWalletId] = useState<string>('');
+    const [toCompanyId, setToCompanyId] = useState<string>('');
+
+    const selectFromWallet = (value: string) => {
+        const [companyId, walletId] = value.split(':');
+        setFromCompanyId(companyId);
+        setFromWalletId(walletId);
+    };
+
+    const selectToWallet = (value: string) => {
+        const [companyId, walletId] = value.split(':');
+        setToCompanyId(companyId);
+        setToWalletId(walletId);
+    };
 
     const walletCount = companies.reduce(
         (count, company) => count + company.wallets.length,
@@ -110,9 +124,14 @@ export default function NetWorthPage({
                                         <div className="grid gap-2">
                                             <Label>From</Label>
                                             <Select
-                                                value={fromWalletId}
+                                                value={
+                                                    fromCompanyId &&
+                                                    fromWalletId
+                                                        ? `${fromCompanyId}:${fromWalletId}`
+                                                        : ''
+                                                }
                                                 onValueChange={
-                                                    setFromWalletId
+                                                    selectFromWallet
                                                 }
                                             >
                                                 <SelectTrigger>
@@ -139,9 +158,7 @@ export default function NetWorthPage({
                                                                             key={
                                                                                 wallet.id
                                                                             }
-                                                                            value={String(
-                                                                                wallet.id,
-                                                                            )}
+                                                                            value={`${company.id}:${wallet.id}`}
                                                                         >
                                                                             {
                                                                                 wallet.name
@@ -165,9 +182,15 @@ export default function NetWorthPage({
                                                 name="from_wallet_id"
                                                 value={fromWalletId}
                                             />
+                                            <input
+                                                type="hidden"
+                                                name="from_company_id"
+                                                value={fromCompanyId}
+                                            />
                                             <InputError
                                                 message={
-                                                    errors.from_wallet_id
+                                                    errors.from_wallet_id ??
+                                                    errors.from_company_id
                                                 }
                                             />
                                         </div>
@@ -175,8 +198,14 @@ export default function NetWorthPage({
                                         <div className="grid gap-2">
                                             <Label>To</Label>
                                             <Select
-                                                value={toWalletId}
-                                                onValueChange={setToWalletId}
+                                                value={
+                                                    toCompanyId && toWalletId
+                                                        ? `${toCompanyId}:${toWalletId}`
+                                                        : ''
+                                                }
+                                                onValueChange={
+                                                    selectToWallet
+                                                }
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a wallet" />
@@ -202,9 +231,7 @@ export default function NetWorthPage({
                                                                             key={
                                                                                 wallet.id
                                                                             }
-                                                                            value={String(
-                                                                                wallet.id,
-                                                                            )}
+                                                                            value={`${company.id}:${wallet.id}`}
                                                                         >
                                                                             {
                                                                                 wallet.name
@@ -228,8 +255,16 @@ export default function NetWorthPage({
                                                 name="to_wallet_id"
                                                 value={toWalletId}
                                             />
+                                            <input
+                                                type="hidden"
+                                                name="to_company_id"
+                                                value={toCompanyId}
+                                            />
                                             <InputError
-                                                message={errors.to_wallet_id}
+                                                message={
+                                                    errors.to_wallet_id ??
+                                                    errors.to_company_id
+                                                }
                                             />
                                         </div>
 

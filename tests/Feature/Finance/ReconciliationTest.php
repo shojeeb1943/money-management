@@ -6,13 +6,15 @@ use App\Actions\Companies\CreateCompany;
 use App\Actions\Transactions\CreateTransaction;
 use App\Actions\Wallets\ReconcileWallet;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 
 function reconcileSetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
 
     resolve(CreateTransaction::class)->handle($company, TransactionType::CapitalInvestment, $bank, 1_000_000, now());
 
@@ -68,5 +70,5 @@ test('repeated reconciliation reuses the adjustment category', function (): void
     resolve(ReconcileWallet::class)->handle($bank, 950_000, $user);
     resolve(ReconcileWallet::class)->handle($bank, 900_000, $user);
 
-    expect($company->categories()->where('name', ReconcileWallet::ADJUSTMENT_CATEGORY)->count())->toBe(1);
+    expect(Category::query()->where('name', ReconcileWallet::ADJUSTMENT_CATEGORY)->count())->toBe(1);
 });

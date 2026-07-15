@@ -9,15 +9,17 @@ use App\Actions\Transactions\CreateTransaction;
 use App\Enums\CategoryKind;
 use App\Enums\TransactionType;
 use App\Models\Budget;
+use App\Models\Category;
 use App\Models\User;
+use App\Models\Wallet;
 use Inertia\Testing\AssertableInertia;
 
 function budgetSetup(): array
 {
     $user = User::factory()->create();
     $company = resolve(CreateCompany::class)->handle($user, 'Acme Studio');
-    $bank = $company->wallets()->where('name', 'Bank')->firstOrFail();
-    $marketing = $company->categories()->where('name', 'Marketing')->firstOrFail();
+    $bank = Wallet::query()->where('name', 'Bank')->firstOrFail();
+    $marketing = Category::query()->where('name', 'Marketing')->firstOrFail();
 
     return [$user, $company, $bank, $marketing];
 }
@@ -52,7 +54,7 @@ test('crossing the alert threshold produces a warning and exceeding produces an 
 test('child category spend counts toward the parent budget', function (): void {
     [$user, $company, $bank, $marketing] = budgetSetup();
 
-    $childCategory = resolve(CreateCategory::class)->handle($company, 'Facebook Ads', CategoryKind::Expense, $marketing);
+    $childCategory = resolve(CreateCategory::class)->handle('Facebook Ads', CategoryKind::Expense, $marketing);
 
     Budget::query()->create([
         'company_id' => $company->id,
