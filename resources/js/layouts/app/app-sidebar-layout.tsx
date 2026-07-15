@@ -1,3 +1,4 @@
+import ChatbotQuickAdd from '@/components/finance/chatbot-quick-add';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -15,6 +16,7 @@ export default function AppSidebarLayout({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
+            <ChatbotQuickAdd />
         </AppShell>
     );
 }

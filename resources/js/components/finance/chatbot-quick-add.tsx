@@ -29,13 +29,12 @@ type ParseResult = {
     categoryId: number | null;
 };
 
-type Props = {
-    wallets: Option[];
-    categories: CategoryOption[];
-};
-
-export default function ChatbotQuickAdd({ wallets, categories }: Props) {
-    const { currentCompany } = usePage().props;
+export default function ChatbotQuickAdd() {
+    const { currentCompany, wallets, categories } = usePage().props as {
+        currentCompany?: { slug: string } | null;
+        wallets?: Option[];
+        categories?: CategoryOption[];
+    };
     const [open, setOpen] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [result, setResult] = useState<ParseResult | null>(null);
@@ -88,11 +87,12 @@ export default function ChatbotQuickAdd({ wallets, categories }: Props) {
     return (
         <>
             <Button
-                variant="outline"
+                size="icon"
+                className="fixed bottom-6 right-6 z-50 size-14 rounded-full shadow-lg"
                 onClick={() => setOpen(true)}
                 data-test="chatbot-quick-add-trigger"
             >
-                <Sparkles /> Quick add
+                <Sparkles className="size-6" />
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
@@ -137,8 +137,8 @@ export default function ChatbotQuickAdd({ wallets, categories }: Props) {
                 <TransactionFormSheet
                     key={`${result.type}-${result.amount}-${result.date}-${result.description}-${result.walletId}-${result.counterWalletId}-${result.categoryId}`}
                     mode={result.type}
-                    wallets={wallets}
-                    categories={categories}
+                    wallets={wallets ?? []}
+                    categories={categories ?? []}
                     open={sheetOpen}
                     onOpenChange={setSheetOpen}
                     initialValues={{

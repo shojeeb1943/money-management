@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Category;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,6 +50,8 @@ final class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentCompany' => fn () => $user?->currentCompany ? $user->toUserCompany($user->currentCompany) : null,
             'companies' => fn () => $user?->toUserCompanies(includeCurrent: true) ?? [],
+            'wallets' => fn () => Wallet::query()->active()->orderBy('name')->get(['id', 'name'])->map(fn (Wallet $w): array => ['id' => $w->id, 'name' => $w->name]),
+            'categories' => fn () => Category::query()->active()->orderBy('name')->get(['id', 'name', 'kind'])->map(fn (Category $c): array => ['id' => $c->id, 'name' => $c->name, 'kind' => $c->kind->value, 'parentId' => $c->parent_id]),
         ];
     }
 }

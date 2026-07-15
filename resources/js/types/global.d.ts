@@ -16,6 +16,8 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             currentCompany: Company | null;
             companies: Company[];
+            wallets: { id: number; name: string }[];
+            categories: { id: number; name: string; kind: 'income' | 'expense'; parentId: number | null }[];
             [key: string]: unknown;
         };
     }
