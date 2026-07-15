@@ -44,7 +44,12 @@ if [ -z "$APP_KEY" ]; then
     export APP_KEY="$(cat storage/app/.app_key)"
 fi
 
-php artisan migrate --force
+php artisan migrate --force || {
+    echo "============================================="
+    echo "  MIGRATION FAILED — schema may be broken"
+    echo "  Shell into the container to debug"
+    echo "============================================="
+}
 
 php artisan moneta:install \
     ${MONETA_ADMIN_NAME:+--name="$MONETA_ADMIN_NAME"} \
