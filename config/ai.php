@@ -11,7 +11,7 @@ return [
     | Every provider except "anthropic" speaks the same OpenAI-compatible
     | chat/completions wire format, so they share the "openai" style and
     | differ only by base_url/model. "custom" lets a user point at any
-    | other OpenAI-compatible endpoint (e.g. Mimo, Groq, Mistral).
+    | other OpenAI-compatible endpoint (e.g. Groq, Mistral).
     |
     */
 
@@ -45,6 +45,12 @@ return [
             'style' => 'anthropic',
             'base_url' => 'https://api.anthropic.com/v1',
             'models' => ['claude-haiku-4-5', 'claude-sonnet-5'],
+        ],
+        'mimo' => [
+            'label' => 'Xiaomi MiMo',
+            'style' => 'openai',
+            'base_url' => 'https://api.xiaomimimo.com/v1',
+            'models' => ['mimo-v2.5-pro', 'mimo-v2.5'],
         ],
         'custom' => [
             'label' => 'Custom (OpenAI-compatible)',
