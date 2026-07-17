@@ -74,6 +74,14 @@ final class Company extends Model
     }
 
     /**
+     * @return HasMany<Obligation, $this>
+     */
+    public function obligations(): HasMany
+    {
+        return $this->hasMany(Obligation::class);
+    }
+
+    /**
      * Get the route key for the model.
      */
     public function getRouteKeyName(): string

@@ -41,7 +41,7 @@ Route::prefix('{current_company}')
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::get('wallets', [WalletController::class, 'index'])->name('wallets.index');
-        Route::get('wallets/{wallet}', [WalletController::class, 'show'])->name('wallets.show');
+        Route::get('wallets/{wallet}', [WalletController::class, 'show'])->name('wallets.show')->withoutScopedBindings();
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('budgets', [BudgetController::class, 'index'])->name('budgets.index');
@@ -64,9 +64,9 @@ Route::prefix('{current_company}')
         Route::post('transfers', [TransferController::class, 'store'])->name('transfers.store');
 
         Route::post('wallets', [WalletController::class, 'store'])->name('wallets.store');
-        Route::put('wallets/{wallet}', [WalletController::class, 'update'])->name('wallets.update');
-        Route::patch('wallets/{wallet}/archive', [WalletController::class, 'archive'])->name('wallets.archive');
-        Route::post('wallets/{wallet}/reconcile', [WalletController::class, 'reconcile'])->name('wallets.reconcile');
+        Route::put('wallets/{wallet}', [WalletController::class, 'update'])->name('wallets.update')->withoutScopedBindings();
+        Route::patch('wallets/{wallet}/archive', [WalletController::class, 'archive'])->name('wallets.archive')->withoutScopedBindings();
+        Route::post('wallets/{wallet}/reconcile', [WalletController::class, 'reconcile'])->name('wallets.reconcile')->withoutScopedBindings();
 
         Route::post('budgets', [BudgetController::class, 'store'])->name('budgets.store');
         Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
@@ -81,9 +81,9 @@ Route::prefix('{current_company}')
         Route::patch('obligations/{obligation}/archive', [ObligationController::class, 'archive'])->name('obligations.archive');
 
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
-        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-        Route::patch('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
-        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update')->withoutScopedBindings();
+        Route::patch('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive')->withoutScopedBindings();
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy')->withoutScopedBindings();
     });
 
 require __DIR__.'/settings.php';

@@ -34,3 +34,9 @@ yarn-error.log
 /graphify-out
 /.graphifyignore
 /.agents
+/.claude/skills/graphify/
+/.claude/skills/ponytail/
+/.claude/skills/ponytail-*/
+/.claude/commands/ponytail*.toml
+/.claude/settings.json
+
