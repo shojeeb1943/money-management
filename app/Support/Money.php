@@ -36,8 +36,9 @@ final class Money
     {
         $symbol = self::CURRENCIES[$currency] ?? $currency.' ';
         $sign = $minorUnits < 0 ? '-' : '';
+        $fractionDigits = abs($minorUnits) % 100 === 0 ? 0 : 2;
 
-        return $sign.$symbol.number_format(abs($minorUnits) / 100, 2);
+        return $sign.$symbol.number_format(abs($minorUnits) / 100, $fractionDigits);
     }
 
     /**

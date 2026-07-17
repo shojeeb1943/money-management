@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Budgets\EvaluateBudgetAlert;
+use App\Enums\ObligationKind;
 use App\Models\Budget;
 use App\Models\Company;
+use App\Models\Obligation;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Services\Reports\CashFlowReport;
@@ -61,6 +63,24 @@ final class DashboardController extends Controller
             ->take(4)
             ->values();
 
+        $activeObligations = Obligation::query()
+            ->forCompany($current_company)
+            ->whereNull('archived_at')
+            ->get(['kind', 'remaining']);
+
+        $obligationSummary = collect(ObligationKind::cases())
+            ->map(function (ObligationKind $kind) use ($activeObligations): array {
+                $matching = $activeObligations->where('kind', $kind);
+
+                return [
+                    'kind' => $kind->value,
+                    'label' => $kind->label(),
+                    'remaining' => (int) $matching->sum('remaining'),
+                    'count' => $matching->count(),
+                ];
+            })
+            ->values();
+
         return Inertia::render('dashboard', [
             'totalCash' => $totalCash,
             'from' => $from->toDateString(),
@@ -71,6 +91,7 @@ final class DashboardController extends Controller
             'periodCashFlow' => $periodCashFlow['netChange'],
             'trend' => $trend,
             'budgets' => $budgets,
+            'obligationSummary' => $obligationSummary,
             'topExpenseCategories' => collect($periodStatement['expense'])->take(5)->values(),
             'recentTransactions' => $current_company->transactions()
                 ->posted()

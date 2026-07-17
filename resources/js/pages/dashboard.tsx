@@ -2,6 +2,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
+    HandCoins,
+    HandHeart,
     Landmark,
     TrendingUp,
     Waves,
@@ -21,7 +23,14 @@ import {
 import { formatDate } from '@/lib/date';
 import { dashboard } from '@/routes';
 import { index as budgetsIndex } from '@/routes/budgets';
+import { index as obligationsIndex } from '@/routes/obligations';
 import { index as transactionsIndex } from '@/routes/transactions';
+
+const OBLIGATION_ICONS: Record<string, typeof Landmark> = {
+    loan: Landmark,
+    lend: HandCoins,
+    safekeeping: HandHeart,
+};
 
 type TrendPoint = {
     month: string;
@@ -56,6 +65,13 @@ type BudgetProgress = {
     spent: number;
 };
 
+type ObligationSummary = {
+    kind: string;
+    label: string;
+    remaining: number;
+    count: number;
+};
+
 type Props = {
     totalCash?: number;
     from?: string;
@@ -66,6 +82,7 @@ type Props = {
     periodCashFlow?: number;
     trend?: TrendPoint[];
     budgets?: BudgetProgress[];
+    obligationSummary?: ObligationSummary[];
     topExpenseCategories?: TopCategory[];
     recentTransactions?: RecentTransaction[];
 };
@@ -88,6 +105,7 @@ export default function Dashboard({
     periodCashFlow = 0,
     trend = [],
     budgets = [],
+    obligationSummary = [],
     topExpenseCategories = [],
     recentTransactions = [],
 }: Props) {
@@ -240,6 +258,47 @@ export default function Dashboard({
                                                 style={{
                                                     width: `${Math.min(100, percent)}%`,
                                                 }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </CardContent>
+                    </Card>
+                ) : null}
+
+                {obligationSummary.some((item) => item.count > 0) ? (
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                            <CardTitle>Obligations</CardTitle>
+                            <Link
+                                href={obligationsIndex({
+                                    current_company: slug,
+                                })}
+                                className="text-sm text-muted-foreground hover:underline"
+                            >
+                                View all
+                            </Link>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 sm:grid-cols-3">
+                            {obligationSummary.map((item) => {
+                                const Icon =
+                                    OBLIGATION_ICONS[item.kind] ?? Landmark;
+
+                                return (
+                                    <div
+                                        key={item.kind}
+                                        className="flex items-center gap-3 rounded-lg border p-3"
+                                    >
+                                        <Icon className="size-5 text-muted-foreground" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">
+                                                {item.label} ·{' '}
+                                                {item.count}
+                                            </p>
+                                            <Money
+                                                amount={item.remaining}
+                                                className="text-lg font-semibold"
                                             />
                                         </div>
                                     </div>

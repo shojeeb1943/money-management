@@ -75,9 +75,7 @@ export default function ReconcileWalletModal({
                                     name="actual_balance"
                                     type="number"
                                     step="0.01"
-                                    defaultValue={(
-                                        wallet.balance / 100
-                                    ).toFixed(2)}
+                                    defaultValue={String(wallet.balance / 100)}
                                     required
                                 />
                                 <InputError message={errors.actual_balance} />

@@ -27,7 +27,7 @@ final class ReconcileWallet extends Tool
         return [
             'company' => $schema->string()->description('Company slug. Defaults to your current company.'),
             'wallet' => $schema->string()->description('Wallet id or name.')->required(),
-            'actual_balance' => $schema->string()->description('The real decimal balance, e.g. "25000.00".')->required(),
+            'actual_balance' => $schema->string()->description('The real decimal balance, e.g. "25000".')->required(),
         ];
     }
 

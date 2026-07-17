@@ -386,7 +386,7 @@ function NewObligationModal({
                         <Input
                             value={amount}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
-                            placeholder="0.00"
+                            placeholder="0"
                         />
                     </div>
 
@@ -472,7 +472,7 @@ function PayModal({
                         <Input
                             value={amount}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
-                            placeholder="0.00"
+                            placeholder="0"
                         />
                     </div>
 

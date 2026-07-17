@@ -292,9 +292,7 @@ export default function BudgetsIndex({ budgets, categories }: Props) {
                                         min="0.01"
                                         defaultValue={
                                             editing
-                                                ? (
-                                                      editing.amount / 100
-                                                  ).toFixed(2)
+                                                ? String(editing.amount / 100)
                                                 : ''
                                         }
                                         required

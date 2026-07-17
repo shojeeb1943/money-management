@@ -73,7 +73,7 @@ test('the cross-company transfer endpoint moves money between two companies', fu
         'from_company_id' => $personal->id,
         'to_wallet_id' => $cash->id,
         'to_company_id' => $bytesis->id,
-        'amount' => '500.00',
+        'amount' => '500',
         'date' => now()->toDateString(),
         'description' => 'Owner draw',
     ])->assertRedirect();

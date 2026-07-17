@@ -182,12 +182,10 @@ export default function WalletFormModal({
                                     name="opening_balance"
                                     type="number"
                                     step="0.01"
-                                    placeholder="0.00"
+                                    placeholder="0"
                                     defaultValue={
                                         wallet
-                                            ? (
-                                                  wallet.openingBalance / 100
-                                              ).toFixed(2)
+                                            ? String(wallet.openingBalance / 100)
                                             : undefined
                                     }
                                 />

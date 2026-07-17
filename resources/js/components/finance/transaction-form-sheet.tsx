@@ -365,12 +365,10 @@ export default function TransactionFormSheet({
                                     min="0.01"
                                     defaultValue={
                                         transaction
-                                            ? (
-                                                  transaction.amount / 100
-                                              ).toFixed(2)
+                                            ? String(transaction.amount / 100)
                                             : (initialValues?.amount ?? '')
                                     }
-                                    placeholder="0.00"
+                                    placeholder="0"
                                     required
                                 />
                                 <InputError message={errors.amount} />
