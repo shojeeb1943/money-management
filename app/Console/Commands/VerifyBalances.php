@@ -17,7 +17,7 @@ final class VerifyBalances extends Command
     {
         $failures = 0;
 
-        foreach (Wallet::query()->with('company')->cursor() as $wallet) {
+        foreach (Wallet::query()->cursor() as $wallet) {
             $derived = $wallet->derivedBalance();
 
             if ($wallet->cached_balance !== $derived) {
