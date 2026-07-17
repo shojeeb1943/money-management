@@ -28,18 +28,6 @@ final readonly class CreateObligation
         ?User $creator = null,
     ): Obligation {
         return DB::transaction(function () use ($company, $kind, $label, $wallet, $amount, $description, $creator): Obligation {
-            $obligation = Obligation::query()->create([
-                'company_id' => $company->id,
-                'kind' => $kind,
-                'label' => $label,
-                'wallet_id' => $wallet->id,
-                'amount' => $amount,
-                'remaining' => $amount,
-                'currency' => $wallet->currency,
-                'description' => $description,
-                'status' => 'active',
-            ]);
-
             // loan & safekeeping: money comes IN (you receive it)
             // lend: money goes OUT (you give it)
             $txType = $kind === ObligationKind::Lend
@@ -48,7 +36,7 @@ final readonly class CreateObligation
 
             $category = $this->obligationCategory($txType);
 
-            $this->createTransaction->handle(
+            $transaction = $this->createTransaction->handle(
                 $company,
                 $txType,
                 $wallet,
@@ -59,7 +47,18 @@ final readonly class CreateObligation
                 creator: $creator,
             );
 
-            return $obligation;
+            return Obligation::query()->create([
+                'company_id' => $company->id,
+                'kind' => $kind,
+                'label' => $label,
+                'wallet_id' => $wallet->id,
+                'transaction_id' => $transaction->id,
+                'amount' => $amount,
+                'remaining' => $amount,
+                'currency' => $wallet->currency,
+                'description' => $description,
+                'status' => 'active',
+            ]);
         });
     }
 

@@ -12,6 +12,7 @@ use App\Http\Requests\Finance\SaveObligationRequest;
 use App\Models\Company;
 use App\Models\Obligation;
 use App\Models\Wallet;
+use App\Support\AuditLogger;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,7 +67,7 @@ final class ObligationController extends Controller
     {
         $wallet = Wallet::query()->whereKey($request->validated('wallet_id'))->firstOrFail();
 
-        $createObligation->handle(
+        $obligation = $createObligation->handle(
             $current_company,
             ObligationKind::from($request->validated('kind')),
             $request->validated('label'),
@@ -75,6 +76,13 @@ final class ObligationController extends Controller
             $request->validated('description'),
             $request->user(),
         );
+
+        AuditLogger::log($current_company, $request->user(), 'created', $obligation, [
+            'kind' => $obligation->kind->value,
+            'amount' => $obligation->amount,
+            'wallet' => $wallet->name,
+            'transaction_id' => $obligation->transaction_id,
+        ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Obligation created.')]);
 
@@ -89,7 +97,9 @@ final class ObligationController extends Controller
             'description' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $recordPayment->handle(
+        $before = ['remaining' => $obligation->remaining, 'status' => $obligation->status];
+
+        $payment = $recordPayment->handle(
             $current_company,
             $obligation,
             $obligation->wallet,
@@ -99,6 +109,13 @@ final class ObligationController extends Controller
             $request->user(),
         );
 
+        AuditLogger::log($current_company, $request->user(), 'paid', $obligation, [
+            'amount' => $payment->amount,
+            'payment_id' => $payment->id,
+            'transaction_id' => $payment->transaction_id,
+            'before' => $before,
+        ]);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment recorded.')]);
 
         return back();
@@ -106,9 +123,13 @@ final class ObligationController extends Controller
 
     public function archive(Request $request, Company $current_company, Obligation $obligation): RedirectResponse
     {
+        $before = $obligation->archived_at?->toJSON();
+
         $obligation->update([
             'archived_at' => $obligation->isArchived() ? null : now(),
         ]);
+
+        AuditLogger::log($current_company, $request->user(), 'archived', $obligation, ['before' => $before]);
 
         Inertia::flash('toast', [
             'type' => 'success',

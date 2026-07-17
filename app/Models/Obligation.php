@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property ObligationKind $kind
  * @property string $label
  * @property int $wallet_id
+ * @property int|null $transaction_id
  * @property int $amount
  * @property int $remaining
  * @property string $currency
@@ -29,9 +30,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Company $company
  * @property-read Wallet $wallet
+ * @property-read Transaction|null $transaction
  * @property-read Collection<int, ObligationPayment> $payments
  */
-#[Fillable(['company_id', 'kind', 'label', 'wallet_id', 'amount', 'remaining', 'currency', 'description', 'status', 'archived_at'])]
+#[Fillable(['company_id', 'kind', 'label', 'wallet_id', 'transaction_id', 'amount', 'remaining', 'currency', 'description', 'status', 'archived_at'])]
 final class Obligation extends Model
 {
     use BelongsToCompany;
@@ -42,6 +44,14 @@ final class Obligation extends Model
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class);
+    }
+
+    /**
+     * @return BelongsTo<Transaction, $this>
+     */
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     /**

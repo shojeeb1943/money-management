@@ -8,6 +8,8 @@ use App\Actions\Audit\RestoreAuditLog;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\Obligation;
+use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,10 +69,19 @@ final class AuditLogController extends Controller
             return false;
         }
 
-        return match ($log->action) {
-            'created', 'voided' => true,
-            'updated' => isset($log->changes['before']),
-            'reconciled' => isset($log->changes['transaction_id']),
+        return match ($log->auditable_type) {
+            Transaction::class => match ($log->action) {
+                'created', 'voided' => true,
+                'updated' => isset($log->changes['before']),
+                'reconciled' => isset($log->changes['transaction_id']),
+                default => false,
+            },
+            Obligation::class => match ($log->action) {
+                'created' => true,
+                'paid' => isset($log->changes['payment_id']) && array_key_exists('before', $log->changes ?? []),
+                'archived' => array_key_exists('before', $log->changes ?? []),
+                default => false,
+            },
             default => false,
         };
     }

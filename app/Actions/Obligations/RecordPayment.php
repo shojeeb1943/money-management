@@ -42,10 +42,22 @@ final readonly class RecordPayment
 
             $direction = $txType === TransactionType::Income ? 'in' : 'out';
 
+            $transaction = $this->createTransaction->handle(
+                $company,
+                $txType,
+                $wallet,
+                $amount,
+                $date,
+                category: $this->obligationCategory($txType),
+                description: $description ?? sprintf('%s payment: %s', $obligation->kind->label(), $obligation->label),
+                creator: $creator,
+            );
+
             $payment = ObligationPayment::query()->create([
                 'company_id' => $company->id,
                 'obligation_id' => $obligation->id,
                 'wallet_id' => $wallet->id,
+                'transaction_id' => $transaction->id,
                 'amount' => $amount,
                 'direction' => $direction,
                 'date' => $date->toDateString(),
@@ -57,17 +69,6 @@ final readonly class RecordPayment
                 'remaining' => $obligation->remaining - $amount,
                 'status' => ($obligation->remaining - $amount) === 0 ? 'settled' : 'active',
             ]);
-
-            $this->createTransaction->handle(
-                $company,
-                $txType,
-                $wallet,
-                $amount,
-                $date,
-                category: $this->obligationCategory($txType),
-                description: $description ?? sprintf('%s payment: %s', $obligation->kind->label(), $obligation->label),
-                creator: $creator,
-            );
 
             return $payment;
         });
