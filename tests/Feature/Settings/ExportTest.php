@@ -13,6 +13,8 @@ test('export page is displayed', function (): void {
 
 test('a user without a current company cannot download an export', function (): void {
     $user = User::factory()->create();
+    $user->forceFill(['current_company_id' => null])->save();
+    $user->refresh();
 
     $this->actingAs($user)->get(route('export.download'))->assertNotFound();
 });

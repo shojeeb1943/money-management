@@ -9,8 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ExportController extends Controller
 {
@@ -21,12 +20,12 @@ final class ExportController extends Controller
         ]);
     }
 
-    public function download(Request $request): BinaryFileResponse
+    public function download(Request $request): StreamedResponse
     {
         $company = $request->user()->currentCompany;
 
         abort_if($company === null, 404);
 
-        return Excel::download(new CompanyDataExport($company), "finance-export-{$company->slug}.xlsx");
+        return (new CompanyDataExport($company))->toResponse();
     }
 }

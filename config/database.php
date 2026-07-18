@@ -37,7 +37,9 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => storage_path((string) env('DB_DATABASE', 'database.sqlite')),
+            'database' => env('DB_DATABASE') === ':memory:'
+                ? ':memory:'
+                : storage_path((string) env('DB_DATABASE', 'database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,
