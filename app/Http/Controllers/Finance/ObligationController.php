@@ -43,6 +43,7 @@ final class ObligationController extends Controller
                 'status' => $obligation->status,
                 'settled' => $obligation->isSettled(),
                 'archived' => $obligation->isArchived(),
+                'openedAt' => $obligation->created_at->toDateString(),
                 'payments' => $obligation->payments->map(fn ($payment): array => [
                     'id' => $payment->id,
                     'amount' => $payment->amount,

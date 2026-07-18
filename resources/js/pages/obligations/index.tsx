@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Archive, ArchiveRestore, HandCoins, HandHeart, Landmark, Plus } from 'lucide-react';
+import { Archive, ArchiveRestore, HandCoins, HandHeart, History, Landmark, Plus } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 import { formatMoney } from '@/lib/money';
 import Heading from '@/components/heading';
@@ -55,6 +55,7 @@ type Obligation = {
     status: string;
     settled: boolean;
     archived: boolean;
+    openedAt: string;
     payments: Payment[];
 };
 
@@ -81,6 +82,7 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
     const [activeTab, setActiveTab] = useState('loan');
     const [newOpen, setNewOpen] = useState(false);
     const [payTarget, setPayTarget] = useState<Obligation | null>(null);
+    const [logTarget, setLogTarget] = useState<Obligation | null>(null);
 
     if (!currentCompany) {
         return null;
@@ -181,6 +183,11 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
                                                         </DropdownMenuItem>
                                                     ) : null}
                                                     <DropdownMenuItem
+                                                        onSelect={() => setLogTarget(o)}
+                                                    >
+                                                        <History /> Log
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
                                                         onSelect={() => toggleArchive(o)}
                                                     >
                                                         {o.archived ? (
@@ -279,7 +286,14 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
                                                     {formatMoney(o.remaining, o.currency)}
                                                 </td>
                                                 <td className="py-2 pr-4">{o.walletName}</td>
-                                                <td className="py-2 text-right">
+                                                <td className="py-2 text-right space-x-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setLogTarget(o)}
+                                                    >
+                                                        <History /> Log
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -311,6 +325,11 @@ export default function ObligationsIndex({ obligations, wallets, kinds }: Props)
                 obligation={payTarget}
                 onClose={() => setPayTarget(null)}
                 companySlug={companySlug}
+            />
+
+            <LogModal
+                obligation={logTarget}
+                onClose={() => setLogTarget(null)}
             />
         </>
     );
@@ -502,6 +521,100 @@ function PayModal({
                     </Button>
                     <Button onClick={submit} disabled={!amount}>
                         Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function LogModal({
+    obligation,
+    onClose,
+}: {
+    obligation: Obligation | null;
+    onClose: () => void;
+}) {
+    if (!obligation) {
+        return null;
+    }
+
+    const sortedPayments = [...obligation.payments].sort((a, b) => a.date.localeCompare(b.date));
+
+    const rows = sortedPayments.reduce(
+        (acc, p) => {
+            const balance = acc[acc.length - 1].balance - p.amount;
+            acc.push({
+                key: `payment-${p.id}`,
+                date: p.date,
+                label: p.direction === 'in' ? 'Received' : 'Paid',
+                amount: -p.amount,
+                balance,
+                note: p.description,
+            });
+
+            return acc;
+        },
+        [
+            {
+                key: 'opened',
+                date: obligation.openedAt,
+                label: 'Opened',
+                amount: obligation.amount,
+                balance: obligation.amount,
+                note: obligation.description,
+            },
+        ],
+    );
+
+    return (
+        <Dialog open onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Log — {obligation.label}</DialogTitle>
+                    <DialogDescription>
+                        Remaining: {formatMoney(obligation.remaining, obligation.currency)}{' '}
+                        / {formatMoney(obligation.amount, obligation.currency)}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b text-left text-muted-foreground">
+                                <th className="py-2 pr-4 font-medium">Date</th>
+                                <th className="py-2 pr-4 font-medium">Type</th>
+                                <th className="py-2 pr-4 font-medium">Amount</th>
+                                <th className="py-2 pr-4 font-medium">Balance</th>
+                                <th className="py-2 font-medium">Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((row) => (
+                                <tr key={row.key} className="border-b last:border-0">
+                                    <td className="py-2 pr-4 whitespace-nowrap">{row.date}</td>
+                                    <td className="py-2 pr-4">
+                                        <Badge variant="secondary" className="text-xs">
+                                            {row.label}
+                                        </Badge>
+                                    </td>
+                                    <td className="py-2 pr-4 whitespace-nowrap">
+                                        {row.amount >= 0 ? '+' : '-'}
+                                        {formatMoney(Math.abs(row.amount), obligation.currency)}
+                                    </td>
+                                    <td className="py-2 pr-4 whitespace-nowrap">
+                                        {formatMoney(row.balance, obligation.currency)}
+                                    </td>
+                                    <td className="py-2 text-muted-foreground">{row.note ?? '—'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>
+                        Close
                     </Button>
                 </DialogFooter>
             </DialogContent>
