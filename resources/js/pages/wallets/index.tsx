@@ -10,10 +10,12 @@ import {
     Pencil,
     PiggyBank,
     Plus,
+    PlusCircle,
     Smartphone,
 } from 'lucide-react';
 import { useState } from 'react';
 import Money from '@/components/finance/money';
+import TransactionFormSheet from '@/components/finance/transaction-form-sheet';
 import WalletFormModal from '@/components/finance/wallet-form-modal';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +30,13 @@ import {
 import { archive, index, show } from '@/routes/wallets';
 import type { Wallet, WalletTypeOption } from '@/types';
 
+type CategoryOption = {
+    id: number;
+    name: string;
+    kind: 'income' | 'expense';
+    parentId: number | null;
+};
+
 const TYPE_ICONS: Record<string, typeof Landmark> = {
     bank: Landmark,
     mobile_banking: Smartphone,
@@ -40,12 +49,14 @@ const TYPE_ICONS: Record<string, typeof Landmark> = {
 type Props = {
     wallets: Wallet[];
     walletTypes: WalletTypeOption[];
+    categories: CategoryOption[];
 };
 
-export default function WalletsIndex({ wallets, walletTypes }: Props) {
+export default function WalletsIndex({ wallets, walletTypes, categories }: Props) {
     const { currentCompany } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<Wallet | null>(null);
+    const [addMoneyWallet, setAddMoneyWallet] = useState<Wallet | null>(null);
 
     if (!currentCompany) {
         return null;
@@ -163,6 +174,13 @@ export default function WalletsIndex({ wallets, walletTypes }: Props) {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onSelect={() =>
+                                                    setAddMoneyWallet(wallet)
+                                                }
+                                            >
+                                                <PlusCircle /> Add money
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onSelect={() =>
                                                     toggleArchive(wallet)
                                                 }
                                             >
@@ -213,6 +231,24 @@ export default function WalletsIndex({ wallets, walletTypes }: Props) {
                 open={formOpen}
                 onOpenChange={setFormOpen}
                 key={editing?.id ?? 'create'}
+            />
+
+            <TransactionFormSheet
+                mode="income"
+                wallets={wallets.map((w) => ({ id: w.id, name: w.name }))}
+                categories={categories}
+                open={addMoneyWallet !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setAddMoneyWallet(null);
+                    }
+                }}
+                initialValues={
+                    addMoneyWallet
+                        ? { walletId: addMoneyWallet.id }
+                        : undefined
+                }
+                key={addMoneyWallet?.id ?? 'add-money'}
             />
         </>
     );

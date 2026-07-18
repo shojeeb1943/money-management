@@ -34,6 +34,13 @@ final class WalletController extends Controller
                 ->get()
                 ->map(fn (Wallet $wallet): array => $this->walletPayload($wallet)),
             'walletTypes' => WalletType::options(),
+            'categories' => Category::query()->active()->orderBy('name')->get()
+                ->map(fn (Category $category): array => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'kind' => $category->kind->value,
+                    'parentId' => $category->parent_id,
+                ]),
         ]);
     }
 
