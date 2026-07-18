@@ -1,8 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Scale } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Scale } from 'lucide-react';
 import { useState } from 'react';
 import Money from '@/components/finance/money';
 import ReconcileWalletModal from '@/components/finance/reconcile-wallet-modal';
+import TransactionFormSheet from '@/components/finance/transaction-form-sheet';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,15 +19,30 @@ import { formatDate } from '@/lib/date';
 import type { LedgerRow, SimplePagination, Wallet } from '@/types';
 import { index, show } from '@/routes/wallets';
 
+type Option = { id: number; name: string };
+type CategoryOption = Option & {
+    kind: 'income' | 'expense';
+    parentId: number | null;
+};
+
 type Props = {
     wallet: Wallet;
     ledger: LedgerRow[];
     pagination: SimplePagination;
+    wallets: Option[];
+    categories: CategoryOption[];
 };
 
-export default function WalletShow({ wallet, ledger, pagination }: Props) {
+export default function WalletShow({
+    wallet,
+    ledger,
+    pagination,
+    wallets,
+    categories,
+}: Props) {
     const { currentCompany } = usePage().props;
     const [reconcileOpen, setReconcileOpen] = useState(false);
+    const [addMoneyOpen, setAddMoneyOpen] = useState(false);
 
     if (!currentCompany) {
         return null;
@@ -58,14 +74,22 @@ export default function WalletShow({ wallet, ledger, pagination }: Props) {
                         description={wallet.typeLabel}
                     />
                     <div className="text-right">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="mb-2"
-                            onClick={() => setReconcileOpen(true)}
-                        >
-                            <Scale className="size-4" /> Reconcile
-                        </Button>
+                        <div className="mb-2 flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAddMoneyOpen(true)}
+                            >
+                                <PlusCircle className="size-4" /> Add money
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setReconcileOpen(true)}
+                            >
+                                <Scale className="size-4" /> Reconcile
+                            </Button>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                             Current balance
                         </p>
@@ -175,6 +199,15 @@ export default function WalletShow({ wallet, ledger, pagination }: Props) {
                 wallet={wallet}
                 open={reconcileOpen}
                 onOpenChange={setReconcileOpen}
+            />
+
+            <TransactionFormSheet
+                mode="income"
+                wallets={wallets}
+                categories={categories}
+                open={addMoneyOpen}
+                onOpenChange={setAddMoneyOpen}
+                initialValues={{ walletId: wallet.id }}
             />
         </>
     );

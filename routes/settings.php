@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Companies\CompanyController;
 use App\Http\Controllers\Settings\AiController;
 use App\Http\Controllers\Settings\ApiTokenController;
+use App\Http\Controllers\Settings\ExportController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Middleware\SetCurrentCompany;
@@ -31,6 +32,9 @@ Route::middleware(['auth'])->group(function (): void {
 
     Route::get('settings/ai', [AiController::class, 'edit'])->name('ai.edit');
     Route::patch('settings/ai', [AiController::class, 'update'])->name('ai.update');
+
+    Route::get('settings/export', [ExportController::class, 'edit'])->name('export.edit');
+    Route::get('settings/export/download', [ExportController::class, 'download'])->name('export.download');
 
     Route::get('settings/api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
     Route::post('settings/api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');

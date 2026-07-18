@@ -12,6 +12,7 @@ use App\Enums\TransactionType;
 use App\Enums\WalletType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\SaveWalletRequest;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\Wallet;
@@ -99,6 +100,15 @@ final class WalletController extends Controller
                 'total' => $entries->total(),
             ],
             'walletTypes' => WalletType::options(),
+            'wallets' => Wallet::query()->active()->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Wallet $wallet): array => ['id' => $wallet->id, 'name' => $wallet->name]),
+            'categories' => Category::query()->active()->orderBy('name')->get()
+                ->map(fn (Category $category): array => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'kind' => $category->kind->value,
+                    'parentId' => $category->parent_id,
+                ]),
         ]);
     }
 

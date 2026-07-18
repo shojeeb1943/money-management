@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Finance;
 
 use App\Actions\Audit\RestoreAuditLog;
+use App\Enums\ObligationKind;
+use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Obligation;
 use App\Models\Transaction;
+use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use Throwable;
 
 final class AuditLogController extends Controller
 {
@@ -35,6 +39,7 @@ final class AuditLogController extends Controller
                 'subjectType' => class_basename($log->auditable_type),
                 'subjectId' => $log->auditable_id,
                 'viaAi' => ($log->changes['via'] ?? null) === 'mcp',
+                'summary' => $this->describe($log, $current_company->currency),
                 'changes' => $log->changes,
                 'createdAt' => $log->created_at->timezone($current_company->timezone)->format('M j, Y g:i A'),
                 'restoredAt' => $log->restored_at?->timezone($current_company->timezone)->format('M j, Y g:i A'),
@@ -83,6 +88,95 @@ final class AuditLogController extends Controller
                 default => false,
             },
             default => false,
+        };
+    }
+
+    private function describe(AuditLog $log, string $currency): string
+    {
+        try {
+            return $this->buildSummary($log, $currency);
+        } catch (Throwable) {
+            return '—';
+        }
+    }
+
+    private function buildSummary(AuditLog $log, string $currency): string
+    {
+        $changes = $log->changes ?? [];
+
+        if ($log->action === 'restored') {
+            return sprintf('Reversed a previous change (entry #%d)', $changes['reverses'] ?? 0);
+        }
+
+        return match (class_basename($log->auditable_type)) {
+            'Transaction' => $this->describeTransaction($log->action, $changes, $currency),
+            'Obligation' => $this->describeObligation($log->action, $changes, $currency),
+            'Wallet' => $this->describeWallet($log->action, $changes, $currency),
+            default => '—',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $changes
+     */
+    private function describeTransaction(string $action, array $changes, string $currency): string
+    {
+        return match ($action) {
+            'created' => sprintf(
+                '%s of %s in %s',
+                TransactionType::from($changes['type'])->label(),
+                Money::format($changes['amount'], $currency),
+                $changes['wallet'],
+            ),
+            'voided' => sprintf(
+                'Voided %s of %s',
+                TransactionType::from($changes['type'])->label(),
+                Money::format($changes['amount'], $currency),
+            ),
+            'updated' => isset($changes['amount']['from'], $changes['amount']['to']) && $changes['amount']['from'] !== $changes['amount']['to']
+                ? sprintf(
+                    'Amount changed from %s to %s',
+                    Money::format($changes['amount']['from'], $currency),
+                    Money::format($changes['amount']['to'], $currency),
+                )
+                : 'Transaction details updated',
+            default => '—',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $changes
+     */
+    private function describeObligation(string $action, array $changes, string $currency): string
+    {
+        return match ($action) {
+            'created' => sprintf(
+                '%s of %s via %s',
+                ObligationKind::from($changes['kind'])->label(),
+                Money::format($changes['amount'], $currency),
+                $changes['wallet'],
+            ),
+            'paid' => sprintf(
+                'Payment of %s recorded (remaining %s → %s)',
+                Money::format($changes['amount'], $currency),
+                Money::format($changes['before']['remaining'] ?? 0, $currency),
+                Money::format(($changes['before']['remaining'] ?? 0) - $changes['amount'], $currency),
+            ),
+            'archived' => ($changes['before'] ?? null) === null ? 'Archived' : 'Restored from archive',
+            default => '—',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $changes
+     */
+    private function describeWallet(string $action, array $changes, string $currency): string
+    {
+        return match ($action) {
+            'reconciled' => ($changes['transaction_id'] ?? null) !== null
+                ? sprintf('Balance adjusted by %s', Money::format($changes['adjustment'] ?? 0, $currency))
+                : 'Balance already matched — no adjustment',
+            default => '—',
         };
     }
 }

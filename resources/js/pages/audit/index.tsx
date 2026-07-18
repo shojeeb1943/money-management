@@ -22,6 +22,7 @@ type LogRow = {
     subjectType: string;
     subjectId: number;
     viaAi: boolean;
+    summary: string;
     changes: Record<string, unknown> | null;
     createdAt: string;
     restoredAt: string | null;
@@ -102,10 +103,15 @@ export default function AuditIndex({ logs, pagination }: Props) {
                                 <TableCell>
                                     {log.subjectType} #{log.subjectId}
                                 </TableCell>
-                                <TableCell className="max-w-md truncate text-xs text-muted-foreground">
-                                    {log.changes
-                                        ? JSON.stringify(log.changes)
-                                        : '—'}
+                                <TableCell
+                                    className="max-w-md truncate text-sm text-muted-foreground"
+                                    title={
+                                        log.changes
+                                            ? JSON.stringify(log.changes)
+                                            : undefined
+                                    }
+                                >
+                                    {log.summary}
                                 </TableCell>
                                 <TableCell className="text-right whitespace-nowrap">
                                     {log.restoredAt ? (

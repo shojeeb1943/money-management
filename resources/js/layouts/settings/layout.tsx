@@ -8,6 +8,7 @@ import { cn, toUrl } from '@/lib/utils';
 import { edit as editAi } from '@/routes/ai';
 import { index as apiTokens } from '@/routes/api-tokens';
 import { index as companies } from '@/routes/companies';
+import { edit as editExport } from '@/routes/export';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
@@ -31,6 +32,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Companies',
         href: companies(),
+        icon: null,
+    },
+    {
+        title: 'Export',
+        href: editExport(),
         icon: null,
     },
     {
